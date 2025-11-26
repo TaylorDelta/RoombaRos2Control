@@ -1,0 +1,9 @@
+<robot name="pacr" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <ros2_control name="PACRSystem" type="system">
+    <hardware>
+      <plugin>pacr_hardware_interface/PACRHardwareInterface</plugin>
+    </hardware>
+  </ros2_control>
+
+</robot>

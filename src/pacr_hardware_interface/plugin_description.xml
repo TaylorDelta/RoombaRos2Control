@@ -1,0 +1,6 @@
+<library path="libpacr_hardware_interface">
+  <class
+    name="pacr_hardware_interface/PACRHardwareInterface"
+    type="pacr_hardware_interface::PACRHardwareInterface"
+    base_class_type="hardware_interface::SystemInterface"/>
+</library>
