@@ -81,6 +81,56 @@ PACRHardwareInterface::on_configure(const rclcpp_lifecycle::State &)
         return hardware_interface::CallbackReturn::ERROR;
     }
 
+
+    // ---- Read Roomba Sensor Group 3 (10 bytes) ----
+    uint8_t sensor_cmd[2] = {142, 3};   // 142 = Sensor, 3 = Group 3 (10 bytes)
+
+    if (::write(serial_fd_, sensor_cmd, 2) != 2) {
+        RCLCPP_ERROR(logger_, "Failed to request sensor group 3 (142,3)");
+        return hardware_interface::CallbackReturn::ERROR;
+    }
+
+    usleep(20000); // give Roomba time to respond
+
+    uint8_t sensor_buf[10];
+    int bytes_read = ::read(serial_fd_, sensor_buf, 10);
+
+    if (bytes_read < 0) { 
+        RCLCPP_ERROR(logger_, "read() failed while reading sensor group 3");
+        return hardware_interface::CallbackReturn::ERROR;
+    }
+
+    RCLCPP_INFO(logger_,
+            "Sensor Group 3 bytes read: %d", bytes_read);
+
+    std::stringstream ss;
+        for (int i = 0; i < bytes_read; i++) {
+            ss << std::hex << std::uppercase
+            << "0x" << static_cast<int>(sensor_buf[i]);
+        if (i < bytes_read - 1) ss << " ";
+    }
+
+    RCLCPP_INFO(logger_, "Sensor Group 3 data: %s", ss.str().c_str());
+
+    int16_t velocity = 200;      // mm/s
+    int16_t radius   = 0x8000;   // straight
+
+    uint8_t drive_cmd[5] = {
+        137,
+        static_cast<uint8_t>((velocity >> 8) & 0xFF),
+        static_cast<uint8_t>(velocity & 0xFF),
+        static_cast<uint8_t>((radius >> 8) & 0xFF),
+        static_cast<uint8_t>(radius & 0xFF)
+    };
+
+    if (::write(serial_fd_, drive_cmd, 5) != 5) {
+        RCLCPP_ERROR(logger_, "Failed to send DRIVE command");
+    } else {
+        RCLCPP_INFO(logger_, "Sent DRIVE command: vel=%d mm/s, radius=0x%04X",
+                    velocity, radius);
+    }
+
+
     RCLCPP_INFO(logger_, "Roomba placed in FULL mode");
 
     return hardware_interface::CallbackReturn::SUCCESS;
@@ -112,6 +162,30 @@ PACRHardwareInterface::on_activate(const rclcpp_lifecycle::State &)
 hardware_interface::CallbackReturn
 PACRHardwareInterface::on_deactivate(const rclcpp_lifecycle::State &)
 {
+
+    int16_t velocity = 0;      // mm/s
+    int16_t radius   = 0;   // straight
+
+    uint8_t drive_cmd[5] = {
+        137,
+        static_cast<uint8_t>((velocity >> 8) & 0xFF),
+        static_cast<uint8_t>(velocity & 0xFF),
+        static_cast<uint8_t>((radius >> 8) & 0xFF),
+        static_cast<uint8_t>(radius & 0xFF)
+    };
+
+    if (::write(serial_fd_, drive_cmd, 5) != 5) {
+        RCLCPP_ERROR(logger_, "Failed to send DRIVE command");
+    } else {
+        RCLCPP_INFO(logger_, "Sent DRIVE command: vel=%d mm/s, radius=0x%04X",
+                    velocity, radius);
+    }
+
+    uint8_t full_cmd = 128;
+    if (::write(serial_fd_, &full_cmd, 1) != 1) {
+        RCLCPP_ERROR(logger_, "Failed to send Start command (128)");
+        return hardware_interface::CallbackReturn::ERROR;
+    }
     RCLCPP_INFO(logger_, "PACR hardware interface deactivated.");
     return hardware_interface::CallbackReturn::SUCCESS;
 }

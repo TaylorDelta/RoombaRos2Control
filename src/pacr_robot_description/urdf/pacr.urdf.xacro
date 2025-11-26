@@ -1,9 +1,22 @@
 <robot name="pacr" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
   <ros2_control name="PACRSystem" type="system">
+  <!-- Hardware Interface declaration -->
     <hardware>
-      <plugin>pacr_hardware_interface/PACRHardwareInterface</plugin>
+      <plugin>roomba_hardware_interface/RoombaHardwareInterface</plugin>
     </hardware>
+
+    <!-- Virtual joint for velocity -->
+    <joint name="velocity_joint">
+      <command_interface name="velocity"/>
+      <state_interface name="velocity"/>
+    </joint>
+
+    <!-- Virtual joint for radius (turning radius) -->
+    <joint name="radius_joint">
+      <command_interface name="velocity"/>
+      <state_interface name="velocity"/>
+    </joint>
   </ros2_control>
 
 </robot>
