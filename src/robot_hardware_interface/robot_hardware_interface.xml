@@ -1,0 +1,9 @@
+<library path="robot_hardware_interface">
+  <class name="robot_hardware_interface/RobotHardwareInterface"
+         type="robot_hardware_interface::RobotHardwareInterface"
+         base_class_type="hardware_interface::ActuatorInterface">
+    <description>
+      ros2_control hardware interface.
+    </description>
+  </class>
+</library>
