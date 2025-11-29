@@ -160,9 +160,10 @@ std::vector<hardware_interface::CommandInterface> RobotHardwareInterface::export
   std::vector<hardware_interface::CommandInterface> command_interfaces;
 
     // Define the command interfaces for linear velocity and angular velocity
+  command_interfaces.push_back(hardware_interface::CommandInterface("linear_velocity_joint", "velocity", &linear_velocity_));
+  command_interfaces.push_back(hardware_interface::CommandInterface("angular_velocity_joint", "velocity", &angular_velocity_));
   command_interfaces.push_back(hardware_interface::CommandInterface("linear_velocity_joint", "position", &linear_position_));
   command_interfaces.push_back(hardware_interface::CommandInterface("angular_velocity_joint", "position", &angular_position_));
-
 
   return command_interfaces;
 }
@@ -221,8 +222,15 @@ hardware_interface::return_type RobotHardwareInterface::write(
   const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
 {
     // Get the current velocities from the command interfaces
-    int16_t velocity = static_cast<int16_t>(linear_position_);  // mm/s
-    int16_t radius = static_cast<int16_t>(angular_position_);  // Control for turning radius
+    int16_t velocity = static_cast<int16_t>(linear_velocity_);  // mm/s
+    int16_t radius = static_cast<int16_t>(angular_velocity_);  // Control for turning radius
+    int16_t position = static_cast<int16_t>(linear_position_); // mm
+    int16_t ang_position = static_cast<int16_t>(angular_position_); // mm
+    RCLCPP_INFO(logger_, "Commanded linear position: %f", linear_position_);
+    #RCLCPP_INFO(logger_, "Commanded angular position: %f", angular_position_);
+    RCLCPP_INFO(logger_, "Commanded linear velocity: %f", linear_velocity_);
+    #RCLCPP_INFO(logger_, "Commanded angular velocity: %f", angular_velocity_);
+    
 
     // Create a byte array for the command (5 bytes for the drive command)
     uint8_t drive_cmd[5] = {
@@ -238,7 +246,7 @@ hardware_interface::return_type RobotHardwareInterface::write(
         //RCLCPP_ERROR(logger_, "Failed to send DRIVE command");
         return hardware_interface::return_type::ERROR;
     } else {
-        //RCLCPP_INFO(logger_, "Sent DRIVE command: vel=%d mm/s, radius=0x%04X", velocity, radius);
+        RCLCPP_INFO(logger_, "Sent DRIVE command: vel=%d mm/s, radius=0x%04X", velocity, radius);
         return hardware_interface::return_type::OK;
     }
 }

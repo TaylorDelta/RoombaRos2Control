@@ -58,9 +58,12 @@ joint_trajectory_controller:                  # delete entry if controller is no
 
 
     command_interfaces:
+      - velocity
       - position
     state_interfaces:
       - position
+      - velocity
+      - acceleration
 
     state_publish_rate: 50.0 # Defaults to 50
     action_monitor_rate: 20.0 # Defaults to 20

@@ -61,8 +61,8 @@ private:
   rclcpp::Logger logger_{rclcpp::get_logger("PACRHardwareInterface")};
 
   int serial_fd_;
-  double linear_velocity_;
   double linear_position_;
+  double linear_velocity_;
   double linear_acceleration_;
   double angular_position_;
   double angular_velocity_;
