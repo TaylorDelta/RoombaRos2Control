@@ -5,11 +5,9 @@
   <xacro:include filename="$(find robot_description)/urdf/common/materials.xacro"/>
 
   <xacro:macro name="robot_x" params="prefix parent *origin">
-    <!-- LINKS -->
-    <!-- base link -->
+
     <link name="${prefix}base_link">
-      <!-- Default inertial for Gazebo - copy and edit block from 'common.xacro'
-           to get more realistic behavior -->
+      <!-- Add geometry or inertia properties -->
       <xacro:default_inertial/>
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -27,10 +25,10 @@
         </geometry>
       </collision>
     </link>
-    <!-- link 1 -->
-    <link name="${prefix}link1">
+
+    <link name="${prefix}linear_velocity_link">
       <!-- Default inertial for Gazebo - copy and edit block from 'common.xacro'
-           to get more realistic behavior -->
+      to get more realistic behavior -->
       <xacro:default_inertial/>
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -49,8 +47,8 @@
         <material name="green"/>
       </collision>
     </link>
-    <!-- link 2 -->
-    <link name="${prefix}link2">
+
+    <link name="${prefix}angular_velocity_link">
       <!-- Default inertial for Gazebo - copy and edit block from 'common.xacro'
            to get more realistic behavior-->
       <xacro:default_inertial/>
@@ -70,104 +68,6 @@
         </geometry>
       </collision>
     </link>
-    <!-- link 3 -->
-    <link name="${prefix}link3">
-      <!-- Default inertial for Gazebo - copy and edit block from 'common.xacro'
-           to get more realistic behavior-->
-      <xacro:default_inertial/>
-      <visual>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
-        <geometry>
-          <cylinder length="0.2" radius="0.1"/>
-          <!--           <mesh filename="package://robot_description/meshes/robot_x/visual/link3.dae" /> -->
-        </geometry>
-        <material name="orange"/>
-      </visual>
-      <collision>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
-        <geometry>
-          <cylinder length="0.2" radius="0.1"/>
-          <!--           <mesh filename="package://robot_description/meshes/robot_x/collision/link3.stl"  /> -->
-        </geometry>
-      </collision>
-    </link>
-    <!-- link 4 -->
-    <link name="${prefix}link4">
-      <!-- Default inertial for Gazebo - copy and edit block from 'common.xacro'
-           to get more realistic behavior-->
-      <xacro:default_inertial/>
-      <visual>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
-        <geometry>
-          <cylinder length="0.1" radius="0.1"/>
-          <!--           <mesh filename="package://robot_description/meshes/robot_x/visual/link4.dae" /> -->
-        </geometry>
-        <material name="brown"/>
-      </visual>
-      <collision>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
-        <geometry>
-          <cylinder length="0.1" radius="0.1"/>
-          <!--           <mesh filename="package://robot_description/meshes/robot_x/collision/link4.stl"  /> -->
-        </geometry>
-      </collision>
-    </link>
-    <!-- link 5 -->
-    <link name="${prefix}link5">
-      <!-- Default inertial for Gazebo - copy and edit block from 'common.xacro'
-           to get more realistic behavior-->
-      <xacro:default_inertial/>
-      <visual>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
-        <geometry>
-          <cylinder length="0.15" radius="0.1"/>
-          <!--           <mesh filename="package://robot_description/meshes/robot_x/visual/link5.dae" /> -->
-        </geometry>
-        <material name="red"/>
-      </visual>
-      <collision>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
-        <geometry>
-          <cylinder length="0.15" radius="0.1"/>
-          <!--           <mesh filename="package://robot_description/meshes/robot_x/collision/link5.stl" /> -->
-        </geometry>
-      </collision>
-    </link>
-    <!-- link 6 -->
-    <link name="${prefix}link6">
-      <!-- Default inertial for Gazebo - copy and edit block from 'common.xacro'
-           to get more realistic behavior-->
-      <xacro:default_inertial/>
-      <visual>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
-        <geometry>
-          <cylinder length="0.05" radius="0.075"/>
-          <!--           <mesh filename="package://robot_description/meshes/robot_x/visual/link6.dae" /> -->
-        </geometry>
-        <material name="white"/>
-      </visual>
-      <collision>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
-        <geometry>
-          <cylinder length="0.05" radius="0.075"/>
-          <!--           <mesh filename="package://robot_description/meshes/robot_x/collision/link6.stl" /> -->
-        </geometry>
-      </collision>
-    </link>
-
-    <!-- All-zero tool frame. This frame should correspond to the TOOL frame of the robot's controller.) -->
-    <link name="${prefix}tool0"/>
-    <!-- tool link -->
-
-    <!-- START Delete if not needed -->
-    <!-- Standard frames for industrial robots. Also useful for manipulators.
-         (ROS-I specs - https://wiki.ros.org/Industrial/Tutorials/WorkingWithRosIndustrialRobotSupportPackages#Standardised_links_.2F_frames)-->
-    <!-- This frame should correspond to the BASE coordinate system of robot's controller.) -->
-    <link name="${prefix}base"/>
-    <!-- Frame for mounting EEF models to a manipulator. x+ axis points forward (REP 103). -->
-    <link name="${prefix}flange"/>
-    <!-- END Delete if not needed  -->
-    <!-- END LINKS -->
 
     <!-- JOINTS -->
     <!-- base_joint fixes base_link to the environment -->
@@ -177,78 +77,23 @@
       <child link="${prefix}base_link"/>
     </joint>
     <!-- joint 1 -->
-    <joint name="${prefix}joint1" type="revolute">
+    <joint name="${prefix}linear_velocity_joint" type="revolute">
       <origin xyz="0 0 0.3" rpy="${pi} 0 0"/>
-      <parent link="${prefix}base_link"/>
-      <child link="${prefix}link1"/>
       <axis xyz="0 0 1"/>
       <limit effort="0" lower="${radians(-180)}" upper="${radians(180)}" velocity="${radians(180)}"/>
+      <parent link="${prefix}base_link"/>  <!-- Specify parent link -->
+      <child link="${prefix}linear_velocity_link"/>  <!-- Specify child link -->
     </joint>
     <!-- joint 2 -->
-    <joint name="${prefix}joint2" type="revolute">
+    <joint name="${prefix}angular_velocity_joint" type="revolute">
       <origin xyz="0 0 -0.3" rpy="${pi/2} 0 0"/>
-      <parent link="${prefix}link1"/>
-      <child link="${prefix}link2"/>
       <axis xyz="0 0 1"/>
       <limit effort="0" lower="${radians(-180)}" upper="${radians(180)}" velocity="${radians(180)}"/>
-    </joint>
-    <!-- joint 3 -->
-    <joint name="${prefix}joint3" type="revolute">
-      <origin xyz="0.8 0 0" rpy="0 0 0"/>
-      <parent link="${prefix}link2"/>
-      <child link="${prefix}link3"/>
-      <axis xyz="0 0 1"/>
-      <limit effort="0" lower="${radians(-90)}" upper="${radians(180)}" velocity="${radians(270)}"/>
-    </joint>
-    <!-- joint 4 -->
-    <joint name="${prefix}joint4" type="revolute">
-      <origin xyz="0.15 0 0" rpy="0 ${-pi/2} 0"/>
-      <parent link="${prefix}link3"/>
-      <child link="${prefix}link4"/>
-      <axis xyz="0 0 1"/>
-      <limit effort="0" lower="${radians(-360)}" upper="${radians(360)}" velocity="${radians(360)}"/>
-    </joint>
-    <!-- joint 5 -->
-    <joint name="${prefix}joint5" type="revolute">
-      <origin xyz="0 0 -0.15" rpy="0 ${pi/2} 0"/>
-      <parent link="${prefix}link4"/>
-      <child link="${prefix}link5"/>
-      <axis xyz="0 0 1"/>
-      <limit effort="0" lower="${radians(-120)}" upper="${radians(120)}" velocity="${radians(540)}"/>
-    </joint>
-    <!-- joint 6 -->
-    <joint name="${prefix}joint6" type="revolute">
-      <origin xyz="0.125 0 0" rpy="0 ${-pi/2} 0"/>
-      <parent link="${prefix}link5"/>
-      <child link="${prefix}link6"/>
-      <axis xyz="0 0 1"/>
-      <limit effort="0" lower="${radians(-360)}" upper="${radians(360)}" velocity="${radians(720)}"/>
+      <parent link="${prefix}linear_velocity_link"/>  <!-- Specify parent link -->
+      <child link="${prefix}angular_velocity_link"/>  <!-- Specify child link -->
     </joint>
 
-    <!-- tool frame - fixed frame -->
-    <joint name="${prefix}joint6-tool0" type="fixed">
-      <parent link="${prefix}link6"/>
-      <child link="${prefix}tool0"/>
-      <origin xyz="0 0 -0.115" rpy="0 ${-pi} ${-pi/2}"/>
-    </joint>
-    <!-- END JOINTS -->
 
-    <!-- START Delete if not needed -->
-    <!-- Standard frames for industrial robots. Also useful for manipulators.
-         (ROS-I specs - https://wiki.ros.org/Industrial/Tutorials/WorkingWithRosIndustrialRobotSupportPackages#Standardised_links_.2F_frames)-->
-    <joint name="${prefix}base_link-base_joint" type="fixed">
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <parent link="${prefix}base_link"/>
-      <child link="${prefix}base"/>
-    </joint>
-
-    <joint name="${prefix}tool0-flange_joint" type="fixed">
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <parent link="${prefix}tool0"/>
-      <child link="${prefix}flange"/>
-    </joint>
-    <!-- END Delete if not needed  -->
-
-
+    
   </xacro:macro>
 </robot>

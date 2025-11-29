@@ -36,6 +36,8 @@
 // TODO(anyone): Replace with controller specific messages
 #include "control_msgs/msg/joint_controller_state.hpp"
 #include "control_msgs/msg/joint_jog.hpp"
+#include "geometry_msgs/msg/twist.hpp"
+
 
 namespace dummy_package_namespace
 {

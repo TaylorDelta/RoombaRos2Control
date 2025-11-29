@@ -20,7 +20,10 @@
 dummy_controller:
   joints: {
     type: string_array,
-    default_value: [],
+    default_value: [
+      "${prefix}linear_velocity_joint",  # Add the linear velocity joint
+      "${prefix}angular_velocity_joint"  # Add the angular velocity joint
+    ],
     description: "Specifies joints used by the controller. If state joints parameter is defined, then only command joints are defined with this parameter.",
     read_only: true,
     validation: {
@@ -30,8 +33,11 @@ dummy_controller:
   }
   state_joints: {
     type: string_array,
-    default_value: [],
-    description: "(optional) Specifies joints for reading states. This parameter is only relevant when state joints are different then command joint, i.e., when a following controller is used.",
+    default_value: [
+      "${prefix}linear_velocity_joint",  # Add the linear velocity joint to state_joints
+      "${prefix}angular_velocity_joint"  # Add the angular velocity joint to state_joints
+    ],
+    description: "(optional) Specifies joints for reading states. This parameter is only relevant when state joints are different from command joints.",
     read_only: true,
     validation: {
       unique<>: null,
@@ -39,12 +45,35 @@ dummy_controller:
   }
   interface_name: {
     type: string,
-    default_value: "",
+    default_value: "velocity",  # Assuming you're using the velocity interface for both joints
     description: "Name of the interface used by the controller on joints and command_joints.",
     read_only: true,
     validation: {
       not_empty<>: null,
-      one_of<>: [["position", "velocity", "acceleration", "effort",]],
+      one_of<>: [["position", "velocity", "acceleration", "effort"]],
       forbidden_interface_name_prefix: null
     }
   }
+
+linear_velocity_joint:
+  command_interface:
+    - name: "velocity"
+      min: -1
+      max: 1
+  state_interface:
+    - name: "position"
+      initial_value: 0.0  # Set initial value for position state
+    - name: "velocity"
+    - name: "acceleration"
+
+angular_velocity_joint:
+  command_interface:
+    - name: "velocity"
+      min: -1
+      max: 1
+  state_interface:
+    - name: "position"
+      initial_value: 0.0  # Set initial value for position state
+    - name: "velocity"
+    - name: "acceleration"
+

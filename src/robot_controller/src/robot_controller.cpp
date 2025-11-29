@@ -26,6 +26,8 @@
 #include <vector>
 
 #include "controller_interface/helpers.hpp"
+#include "robot_hardware_interface/robot_hardware_interface.hpp"
+#include "geometry_msgs/msg/twist.hpp"  // Include for cmd_vel
 
 namespace
 {  // utility
@@ -59,7 +61,10 @@ void reset_controller_reference_msg(
 
 namespace dummy_package_namespace
 {
-DummyClassName::DummyClassName() : controller_interface::ControllerInterface() {}
+DummyClassName::DummyClassName() : controller_interface::ControllerInterface() {
+  // Subscriber for /cmd_vel to listen to velocity commands
+  cmd_vel_subscriber_ = get_node()->create_subscription<geometry_msgs::msg::Twist>("/cmd_vel", 10, std::bind(&DummyClassName::cmdVelCallback, this, std::placeholders::_1));
+}
 
 controller_interface::CallbackReturn DummyClassName::on_init()
 {
@@ -172,6 +177,33 @@ void DummyClassName::reference_callback(const std::shared_ptr<ControllerReferenc
       "Received %zu , but expected %zu joints in command. Ignoring message.",
       msg->joint_names.size(), params_.joints.size());
   }
+}
+
+// Callback function to handle cmd_vel messages
+void DummyClassName::cmdVelCallback(const geometry_msgs::msg::Twist::SharedPtr msg)
+{
+  double linear_velocity = msg->linear.x;  // Linear velocity (m/s)
+  double angular_velocity = msg->angular.z;  // Angular velocity (rad/s)
+
+  // Set the joint commands for linear and angular velocity joints
+  set_joint_commands(linear_velocity, angular_velocity);
+
+  RCLCPP_INFO(get_node()->get_logger(), "Received cmd_vel: linear=%.2f, angular=%.2f",
+              linear_velocity, angular_velocity);
+}
+
+
+
+// Function to set joint velocities
+void DummyClassName::set_joint_commands(double linear_velocity, double angular_velocity)
+{
+  // Assuming that command_interfaces_ contains the two joints in the correct order:
+  // 0 -> linear_velocity_joint, 1 -> angular_velocity_joint
+  command_interfaces_[0].set_value(linear_velocity);  // Linear velocity joint
+  command_interfaces_[1].set_value(angular_velocity); // Angular velocity joint
+
+  RCLCPP_INFO(get_node()->get_logger(), "Joint commands updated: linear = %.2f, angular = %.2f",
+              linear_velocity, angular_velocity);
 }
 
 controller_interface::InterfaceConfiguration DummyClassName::command_interface_configuration() const

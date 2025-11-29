@@ -19,16 +19,17 @@
 #include <string>
 #include <vector>
 
-#include "hardware_interface/actuator_interface.hpp"
+#include "hardware_interface/system_interface.hpp"
 #include "hardware_interface/handle.hpp"
 #include "hardware_interface/hardware_info.hpp"
 #include "hardware_interface/types/hardware_interface_return_values.hpp"
 #include "rclcpp/macros.hpp"
 #include "rclcpp_lifecycle/state.hpp"
+#include <rclcpp/rclcpp.hpp>
 
 namespace robot_hardware_interface
 {
-class RobotHardwareInterface : public hardware_interface::ActuatorInterface
+class RobotHardwareInterface : public hardware_interface::SystemInterface
 {
 public:
   hardware_interface::CallbackReturn on_init(
@@ -56,6 +57,16 @@ public:
 private:
   std::vector<double> hw_commands_;
   std::vector<double> hw_states_;
+
+  rclcpp::Logger logger_{rclcpp::get_logger("PACRHardwareInterface")};
+
+  int serial_fd_;
+  double linear_velocity_;
+  double linear_position_;
+  double linear_acceleration_;
+  double angular_position_;
+  double angular_velocity_;
+  double angular_acceleration_;
 };
 
 }  // namespace robot_hardware_interface

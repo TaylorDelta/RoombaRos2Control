@@ -81,6 +81,7 @@ def generate_launch_description():
         output="both",
         parameters=[robot_description],
     )
+    
     rviz_node = Node(
         package="rviz2",
         executable="rviz2",
@@ -94,6 +95,6 @@ def generate_launch_description():
         + [
             joint_state_publisher_node,
             robot_state_publisher_node,
-            rviz_node,
+            #rviz_node,
         ]
     )

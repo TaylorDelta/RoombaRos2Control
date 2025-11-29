@@ -38,34 +38,24 @@ controller_manager:
 forward_position_controller:                  # delete entry if controller is not applicable
   ros__parameters:
     joints:
-      - joint1
-      - joint2
-      - joint3
-      - joint4
-      - joint5
-      - joint6
+      - linear_velocity_joint
+      - angular_velocity_joint
     interface_name: position
 
 forward_velocity_controller:                  # delete entry if controller is not applicable
   ros__parameters:
     joints:
-      - joint1
-      - joint2
-      - joint3
-      - joint4
-      - joint5
-      - joint6
+      - linear_velocity_joint
+      - angular_velocity_joint
+
     interface_name: velocity
 
 joint_trajectory_controller:                  # delete entry if controller is not applicable
   ros__parameters:
     joints:
-      - joint1
-      - joint2
-      - joint3
-      - joint4
-      - joint5
-      - joint6
+      - linear_velocity_joint
+      - angular_velocity_joint
+
 
     command_interfaces:
       - position
