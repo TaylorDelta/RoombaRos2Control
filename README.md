@@ -1,6 +1,6 @@
 # Roomba Hardware Interface and ROS2 Controller
 
-This project implements a ROS2 hardware interface and controller for the iRobot® Roomba® using the Serial Command Interface (SCI) specification. It provides a seamless way to control Roomba's movement via the Joint Trajectory Controller in ROS2.
+This project implements a ROS2 hardware interface and controller for the iRobot® Roomba® using the Serial Command Interface (SCI) specification. It provides a seamless way to control Roomba's movement via the Forward Velocity Controller in ROS2.
 
 ## Features
 
@@ -8,7 +8,7 @@ Interface to control Roomba's velocity using ROS2 messages.
 
 Compatible with ROS2-based systems.
 
-Can be used to send joint trajectory commands to Roomba for movement control.
+Can be used to send commands to Roomba for movement control. Different controllers can be used.
 
 Utilizes the iRobot® Roomba® Serial Command Interface (SCI) for communication.
 
@@ -28,62 +28,54 @@ cd roomba_ros2_controller
 2. Install dependencies
 
 Install necessary ROS2 dependencies for your workspace:
-
+```md
 sudo apt update
 sudo apt install ros-<ros2-distro>-serial
-
+```
 3. Build the workspace
 
 From your ROS2 workspace, build the project:
-
+```md
 colcon build
-
+```
 4. Source the workspace
 
 After building, source the workspace to ensure that ROS2 can find the packages:
-
+```md
 source install/setup.bash
-
+```
 Launch the Roomba Controller
 
 To launch the hardware interface and controller, run the following command:
-
+```md
 ros2 launch robot_bringup robot_x.launch.py
-
+```
 
 This will start the necessary ROS2 nodes for controlling your Roomba robot.
 
 ## Sending Commands to Roomba
 
 You can use the Joint Trajectory Controller to send movement commands to Roomba. To send a trajectory command, run the following command in a separate terminal:
+```md
+ros2 topic pub /forward_velocity_controller/commands std_msgs/msg/Float64MultiArray "data: [Velocity, Radius]" --once
+```
+### Explanation of Command
+- **Velocity**: 
+  - Defines the speed of the robot in millimeters per second.
+  - The valid range for velocity is **-500.0 to 500.0 mm/s**:
+    - A positive value indicates **forward motion**.
+    - A negative value indicates **reverse motion**.
+- **Radius**: 
+  - Defines the turning radius of the robot in millimeters.
+  - The valid range for radius is **-2000.0 to 2000.0 mm**:
+    - A positive value results in a **counter-clockwise** turn (left turn).
+    - A negative value results in a **clockwise** turn (right turn).
+    - A radius of `0` corresponds to **moving in a straight line**.
 
-ros2 topic pub /joint_trajectory_controller/joint_trajectory trajectory_msgs/msg/JointTrajectory "header:
-  stamp:
-    sec: 0
-    nanosec: 0
-  frame_id: 'base_link'
-joint_names: ['linear_velocity_joint', 'angular_velocity_joint']
-points:
-  - positions: [0.0, 0.0]
-    velocities: [200.0, 0.0]
-    accelerations: [0.0, 0.0]
-    time_from_start:
-      sec: 2
-      nanosec: 0"
+- **Special Cases** for Turning in Place:
+  - **Turn in place clockwise**: Set **radius = -1**.
+  - **Turn in place counter-clockwise**: Set **radius = 1**.
 
-Explanation of Command:
-
-positions: The position command for the joints. In this example, 200.0 for linear_velocity_joint corresponds to the desired linear velocity in mm/s, and 0.0 for angular_velocity_joint indicates no rotational movement.
-
-velocities: Specifies the desired velocity for each joint.
-
-accelerations: Specifies the desired acceleration for each joint.
-
-time_from_start: The time duration for the trajectory to reach the desired position.
-
-Example Behavior:
-
-In the example above, the command will move the Roomba forward at a speed of 200 mm/s for 2 seconds. You can modify the velocity values to control the Roomba's velocity and direction.
 
 ## Troubleshooting
 
