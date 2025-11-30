@@ -40,7 +40,7 @@ hardware_interface::CallbackReturn RobotHardwareInterface::on_init(
   hw_states_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
   hw_commands_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
 
-  RCLCPP_INFO(logger_, "PACRHardwareInterface on_init");
+  RCLCPP_INFO(logger_, "HardwareInterface on_init");
   serial_fd_ = -1;
 
   return CallbackReturn::SUCCESS;
@@ -50,13 +50,18 @@ hardware_interface::CallbackReturn RobotHardwareInterface::on_configure(
   const rclcpp_lifecycle::State & /*previous_state*/)
 {
   // TODO(anyone): prepare the robot to be ready for read calls and write calls of some interfaces
-  RCLCPP_INFO(logger_, "Configuring PACR hardware interface...");
+  RCLCPP_INFO(logger_, "Configuring Hardware interface...");
 
   // Open serial port
   serial_fd_ = ::open("/dev/ttyUSB0", O_RDWR | O_NOCTTY | O_NONBLOCK);
   if (serial_fd_ < 0) {
-      RCLCPP_ERROR(logger_, "Failed to open serial port");
-      return hardware_interface::CallbackReturn::ERROR;
+      RCLCPP_INFO(logger_, "Failed to open serial port /dev/ttyUSB0, trying /dev/ttyUSB1");
+      serial_fd_ = ::open("/dev/ttyUSB1", O_RDWR | O_NOCTTY | O_NONBLOCK);
+      if (serial_fd_ < 0) {
+          RCLCPP_ERROR(logger_, "Failed to open serial port /dev/ttyUSB0 and /dev/ttyUSB1");
+          RCLCPP_ERROR(logger_, "List all connected serial devices with 'ls /dev/ttyUSB*' and check permissions.");
+          return hardware_interface::CallbackReturn::ERROR;
+      }
   }
 
   struct termios tty;
@@ -172,7 +177,7 @@ hardware_interface::CallbackReturn RobotHardwareInterface::on_activate(
   const rclcpp_lifecycle::State & /*previous_state*/)
 {
   // TODO(anyone): prepare the robot to receive commands
-  RCLCPP_INFO(logger_, "PACR hardware interface activated.");
+  RCLCPP_INFO(logger_, "Hardware interface activated.");
 
   return CallbackReturn::SUCCESS;
 }
@@ -180,6 +185,7 @@ hardware_interface::CallbackReturn RobotHardwareInterface::on_activate(
 hardware_interface::CallbackReturn RobotHardwareInterface::on_deactivate(
   const rclcpp_lifecycle::State & /*previous_state*/)
 {
+  
   // TODO(anyone): prepare the robot to stop receiving commands
   int16_t velocity = 0;      // mm/s
   int16_t radius   = 0;   // straight
@@ -221,34 +227,67 @@ hardware_interface::return_type RobotHardwareInterface::read(
 hardware_interface::return_type RobotHardwareInterface::write(
   const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
 {
-    // Get the current velocities from the command interfaces
-    int16_t velocity = static_cast<int16_t>(linear_velocity_);  // mm/s
-    int16_t radius = static_cast<int16_t>(angular_velocity_);  // Control for turning radius
-    int16_t position = static_cast<int16_t>(linear_position_); // mm
-    int16_t ang_position = static_cast<int16_t>(angular_position_); // mm
-    RCLCPP_INFO(logger_, "Commanded linear position: %f", linear_position_);
-    #RCLCPP_INFO(logger_, "Commanded angular position: %f", angular_position_);
-    RCLCPP_INFO(logger_, "Commanded linear velocity: %f", linear_velocity_);
-    #RCLCPP_INFO(logger_, "Commanded angular velocity: %f", angular_velocity_);
-    
+  /*
+  Serial sequence: [137] [Velocity high byte] [Velocity low byte]
+  [Radius high byte] [Radius low byte]
+  Drive data bytes 1 and 2: Velocity (-500 – 500 mm/s)
+  Drive data bytes 3 and 4: Radius (-2000 – 2000 mm)
+  */
+  // Checlk if serial port is open
+  if (serial_fd_ < 0) {
+      RCLCPP_ERROR(logger_, "Serial port not open");
+      return hardware_interface::return_type::ERROR;
+  }
 
-    // Create a byte array for the command (5 bytes for the drive command)
-    uint8_t drive_cmd[5] = {
-        137,  // Command identifier (example value, needs to match your device protocol)
-        static_cast<uint8_t>((velocity >> 8) & 0xFF), // High byte of velocity
-        static_cast<uint8_t>(velocity & 0xFF),        // Low byte of velocity
-        static_cast<uint8_t>((radius >> 8) & 0xFF),   // High byte of radius
-        static_cast<uint8_t>(radius & 0xFF)           // Low byte of radius
-    };
+  // Get the current velocities from the command interfaces 
+  int16_t velocity = static_cast<int16_t>(linear_velocity_);  // mm/s
+  int16_t radius = static_cast<int16_t>(angular_velocity_);  // Control for turning radius
+  int16_t position = static_cast<int16_t>(linear_position_); // mm
+  int16_t ang_position = static_cast<int16_t>(angular_position_); // mm
 
-    // Send the command to the hardware over the serial interface
-    if (::write(serial_fd_, drive_cmd, sizeof(drive_cmd)) != sizeof(drive_cmd)) {
-        //RCLCPP_ERROR(logger_, "Failed to send DRIVE command");
-        return hardware_interface::return_type::ERROR;
-    } else {
-        RCLCPP_INFO(logger_, "Sent DRIVE command: vel=%d mm/s, radius=0x%04X", velocity, radius);
-        return hardware_interface::return_type::OK;
-    }
+  // Check for velocity limits
+  if (velocity > 500) velocity = 500;
+  if (velocity < -500) velocity = -500;
+  // Check for radius limits
+  if (radius > 2000) radius = 2000;
+  if (radius < -2000) radius = -2000;
+
+  // Create a byte array for the command (5 bytes for the drive command)
+  uint8_t drive_cmd[5] = {
+      137,  // Command identifier (example value, needs to match your device protocol)
+      static_cast<uint8_t>((velocity >> 8) & 0xFF), // High byte of velocity
+      static_cast<uint8_t>(velocity & 0xFF),        // Low byte of velocity
+      static_cast<uint8_t>((radius >> 8) & 0xFF),   // High byte of radius
+      static_cast<uint8_t>(radius & 0xFF)           // Low byte of radius
+  };
+
+  // Send the command to the hardware over the serial interface
+  if (::write(serial_fd_, drive_cmd, sizeof(drive_cmd)) != sizeof(drive_cmd)) {
+      RCLCPP_ERROR(logger_, "Failed to send DRIVE command");
+      return hardware_interface::return_type::ERROR;
+  } else {
+      //RCLCPP_INFO(logger_, "Sent DRIVE command: vel=%d mm/s, radius=0x%04X", velocity, radius);
+      return hardware_interface::return_type::OK;
+  }
+
+  // test communication
+    // ---- Read Roomba Sensor Group 3 (10 bytes) ----
+  uint8_t sensor_cmd[2] = {142, 2};   // 142 = Sensor, 3 = Group 3 (10 bytes)
+
+  if (::write(serial_fd_, sensor_cmd, 2) != 2) {
+      RCLCPP_ERROR(logger_, "Failed to request sensor data (142,2)");
+      return hardware_interface::return_type::ERROR;
+  }
+
+  usleep(1000); // give Roomba time to respond
+
+  uint8_t sensor_buf[6];
+  ssize_t bytes_read = ::read(serial_fd_, sensor_buf, 10);  // Use ssize_t instead of int
+
+  if (bytes_read < 0) { 
+      RCLCPP_ERROR(logger_, "read() failed while reading sensor group 3");
+      return hardware_interface::return_type::ERROR;
+  }
 }
 
 }  // namespace robot_hardware_interface

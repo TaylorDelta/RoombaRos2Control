@@ -58,7 +58,7 @@ private:
   std::vector<double> hw_commands_;
   std::vector<double> hw_states_;
 
-  rclcpp::Logger logger_{rclcpp::get_logger("PACRHardwareInterface")};
+  rclcpp::Logger logger_{rclcpp::get_logger("HardwareInterface")};
 
   int serial_fd_;
   double linear_position_;
