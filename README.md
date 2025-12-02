@@ -87,7 +87,7 @@ If commands are not working, check the Roomba's logs to see if there are any com
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE
+This project is licensed under the Apache 2.0 License - see the LICENSE
  file for details.
 
 ## Acknowledgments
