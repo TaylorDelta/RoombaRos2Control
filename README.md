@@ -22,10 +22,10 @@ A working serial connection between the host computer and Roomba.
 
 ## Setup and Installation
 1. Clone the repository
-git clone https://github.com/your-username/roomba_ros2_controller.git
+git clone https://github.com/TaylorDelta/RoombaRos2Control.git
 cd roomba_ros2_controller
 
-2. Install dependencies
+3. Install dependencies
 
 Install necessary ROS2 dependencies for your workspace:
 ```md
