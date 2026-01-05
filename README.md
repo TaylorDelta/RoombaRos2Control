@@ -31,6 +31,7 @@ Install necessary ROS2 dependencies for your workspace:
 ```md
 sudo apt update
 sudo apt install ros-<ros2-distro>-serial
+sudo apt install ros-<ros2-distro>-rosbridge-server
 ```
 3. Build the workspace
 
