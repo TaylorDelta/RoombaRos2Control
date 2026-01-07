@@ -1,5 +1,4 @@
-// Copyright (c) 2025, TaylorDelta
-// Copyright (c) 2025, Stogl Robotics Consulting UG (haftungsbeschränkt) (template)
+// Copyright (c) 2022, Stogl Robotics Consulting UG (haftungsbeschränkt) (template)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -28,7 +27,7 @@
 #include "rclcpp/utilities.hpp"
 #include "ros2_control_test_assets/descriptions.hpp"
 
-TEST(TestLoadDummyClassName, load_controller)
+TEST(TestLoadRobotSimpleController, load_controller)
 {
   rclcpp::init(0, nullptr);
 
@@ -39,7 +38,7 @@ TEST(TestLoadDummyClassName, load_controller)
     executor, ros2_control_test_assets::minimal_robot_urdf, true, "test_controller_manager");
 
   ASSERT_NO_THROW(
-    cm.load_controller("test_dummy_package_namespace", "dummy_package_namespace/DummyClassName"));
+    cm.load_controller("test_robot_simple_controller", "robot_simple_controller/RobotSimpleController"));
 
   rclcpp::shutdown();
 }

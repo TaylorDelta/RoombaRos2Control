@@ -1,5 +1,4 @@
-// Copyright (c) 2025, TaylorDelta
-// Copyright (c) 2025, Stogl Robotics Consulting UG (haftungsbeschränkt) (template)
+// Copyright (c) 2022, Stogl Robotics Consulting UG (haftungsbeschränkt) (template)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,7 +17,7 @@
 // [RosTeamWorkspace](https://github.com/StoglRobotics/ros_team_workspace) repository.
 //
 
-#include "test_dummy_controller.hpp"
+#include "test_robot_simple_controller.hpp"
 
 #include <limits>
 #include <memory>
@@ -26,15 +25,15 @@
 #include <utility>
 #include <vector>
 
-using dummy_package_namespace::CMD_MY_ITFS;
-using dummy_package_namespace::control_mode_type;
-using dummy_package_namespace::STATE_MY_ITFS;
+using robot_simple_controller::CMD_MY_ITFS;
+using robot_simple_controller::control_mode_type;
+using robot_simple_controller::STATE_MY_ITFS;
 
-class DummyClassNameTest : public DummyClassNameFixture<TestableDummyClassName>
+class RobotSimpleControllerTest : public RobotSimpleControllerFixture<TestableRobotSimpleController>
 {
 };
 
-TEST_F(DummyClassNameTest, all_parameters_set_configure_success)
+TEST_F(RobotSimpleControllerTest, all_parameters_set_configure_success)
 {
   SetUpController();
 
@@ -50,7 +49,7 @@ TEST_F(DummyClassNameTest, all_parameters_set_configure_success)
   ASSERT_EQ(controller_->params_.interface_name, interface_name_);
 }
 
-TEST_F(DummyClassNameTest, check_exported_intefaces)
+TEST_F(RobotSimpleControllerTest, check_exported_intefaces)
 {
   SetUpController();
 

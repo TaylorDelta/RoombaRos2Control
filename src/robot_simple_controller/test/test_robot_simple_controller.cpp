@@ -1,5 +1,4 @@
-// Copyright (c) 2025, TaylorDelta
-// Copyright (c) 2025, Stogl Robotics Consulting UG (haftungsbeschränkt) (template)
+// Copyright (c) 2022, Stogl Robotics Consulting UG (haftungsbeschränkt) (template)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,17 +24,17 @@
 #include <vector>
 
 #include "rclcpp/rclcpp.hpp"
-#include "test_dummy_controller.hpp"
+#include "test_robot_simple_controller.hpp"
 
-using dummy_package_namespace::CMD_MY_ITFS;
-using dummy_package_namespace::control_mode_type;
-using dummy_package_namespace::STATE_MY_ITFS;
+using robot_simple_controller::CMD_MY_ITFS;
+using robot_simple_controller::control_mode_type;
+using robot_simple_controller::STATE_MY_ITFS;
 
-class DummyClassNameTest : public DummyClassNameFixture<TestableDummyClassName>
+class RobotSimpleControllerTest : public RobotSimpleControllerFixture<TestableRobotSimpleController>
 {
 };
 
-TEST_F(DummyClassNameTest, all_parameters_set_configure_success)
+TEST_F(RobotSimpleControllerTest, all_parameters_set_configure_success)
 {
   SetUpController();
 
@@ -51,7 +50,7 @@ TEST_F(DummyClassNameTest, all_parameters_set_configure_success)
   ASSERT_EQ(controller_->params_.interface_name, interface_name_);
 }
 
-TEST_F(DummyClassNameTest, check_exported_intefaces)
+TEST_F(RobotSimpleControllerTest, check_exported_intefaces)
 {
   SetUpController();
 
@@ -72,7 +71,7 @@ TEST_F(DummyClassNameTest, check_exported_intefaces)
   }
 }
 
-TEST_F(DummyClassNameTest, activate_success)
+TEST_F(RobotSimpleControllerTest, activate_success)
 {
   SetUpController();
 
@@ -95,7 +94,7 @@ TEST_F(DummyClassNameTest, activate_success)
   ASSERT_TRUE(std::isnan((*msg)->duration));
 }
 
-TEST_F(DummyClassNameTest, update_success)
+TEST_F(RobotSimpleControllerTest, update_success)
 {
   SetUpController();
 
@@ -107,7 +106,7 @@ TEST_F(DummyClassNameTest, update_success)
     controller_interface::return_type::OK);
 }
 
-TEST_F(DummyClassNameTest, deactivate_success)
+TEST_F(RobotSimpleControllerTest, deactivate_success)
 {
   SetUpController();
 
@@ -116,7 +115,7 @@ TEST_F(DummyClassNameTest, deactivate_success)
   ASSERT_EQ(controller_->on_deactivate(rclcpp_lifecycle::State()), NODE_SUCCESS);
 }
 
-TEST_F(DummyClassNameTest, reactivate_success)
+TEST_F(RobotSimpleControllerTest, reactivate_success)
 {
   SetUpController();
 
@@ -133,7 +132,7 @@ TEST_F(DummyClassNameTest, reactivate_success)
     controller_interface::return_type::OK);
 }
 
-TEST_F(DummyClassNameTest, test_setting_slow_mode_service)
+TEST_F(RobotSimpleControllerTest, test_setting_slow_mode_service)
 {
   SetUpController();
 
@@ -159,7 +158,7 @@ TEST_F(DummyClassNameTest, test_setting_slow_mode_service)
   ASSERT_EQ(*(controller_->control_mode_.readFromRT()), control_mode_type::FAST);
 }
 
-TEST_F(DummyClassNameTest, test_update_logic_fast)
+TEST_F(RobotSimpleControllerTest, test_update_logic_fast)
 {
   SetUpController();
   rclcpp::executors::MultiThreadedExecutor executor;
@@ -188,7 +187,7 @@ TEST_F(DummyClassNameTest, test_update_logic_fast)
   EXPECT_EQ(*(controller_->control_mode_.readFromRT()), control_mode_type::FAST);
 }
 
-TEST_F(DummyClassNameTest, test_update_logic_slow)
+TEST_F(RobotSimpleControllerTest, test_update_logic_slow)
 {
   SetUpController();
   rclcpp::executors::MultiThreadedExecutor executor;
@@ -219,7 +218,7 @@ TEST_F(DummyClassNameTest, test_update_logic_slow)
   EXPECT_TRUE(std::isnan((*(controller_->input_ref_.readFromRT()))->displacements[0]));
 }
 
-TEST_F(DummyClassNameTest, publish_status_success)
+TEST_F(RobotSimpleControllerTest, publish_status_success)
 {
   SetUpController();
 
@@ -236,7 +235,7 @@ TEST_F(DummyClassNameTest, publish_status_success)
   ASSERT_EQ(msg.set_point, 101.101);
 }
 
-TEST_F(DummyClassNameTest, receive_message_and_publish_updated_status)
+TEST_F(RobotSimpleControllerTest, receive_message_and_publish_updated_status)
 {
   SetUpController();
   rclcpp::executors::MultiThreadedExecutor executor;

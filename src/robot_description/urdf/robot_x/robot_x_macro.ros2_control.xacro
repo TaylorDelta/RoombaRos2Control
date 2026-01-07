@@ -8,7 +8,8 @@
                mock_sensor_commands:=false
                sim_gazebo_classic:=false
                sim_gazebo:=false
-               simulation_controllers"
+               simulation_controllers
+               wheelbase"
                >
 
     <ros2_control name="${name}" type="system">
@@ -26,34 +27,83 @@
         <xacro:unless value="${use_mock_hardware or sim_gazebo_classic or sim_gazebo}">
           <plugin>robot_hardware_interface/RobotHardwareInterface</plugin>
         </xacro:unless>
+        <param name="wheelbase">${wheelbase}</param>
       </hardware>
 
-      <joint name="${prefix}linear_velocity_joint">
-        <command_interface name="velocity">     <!-- Add/Remove interfaces as needed -->
-          <param name="min">-200</param><!-- -1 -->
-          <param name="max">200</param><!-- 1 -->
+      <!-- Joint definitions -->
+      <joint name="${prefix}left_wheel_joint">
+        <command_interface name="velocity">     
+          <param name="min">-301</param>
+          <param name="max">301</param>
         </command_interface>
-        <command_interface name="position"/>  
-        <state_interface name="position">
-          <param name="initial_value">0.0</param>
-        </state_interface>
-        <state_interface name="velocity"/>
-        <state_interface name="acceleration"/>
+        <state_interface name="position"/>
       </joint>
 
+      <joint name="${prefix}right_wheel_joint">
+        <command_interface name="velocity">   
+          <param name="min">-301</param> 
+          <param name="max">301</param> 
+        </command_interface>
+        <state_interface name="position"/>
+      </joint>
+
+      <joint name="${prefix}clean_mode_joint">
+        <command_interface name="velocity">
+          <param name="min">0</param>
+          <param name="max">7</param>
+        </command_interface>
+        <state_interface name="position"/>
+      </joint>
+
+      <joint name="${prefix}linear_velocity_joint">
+        <command_interface name="velocity">
+          <param name="min">-0.5</param>
+          <param name="max">0.5</param>
+        </command_interface>
+        <state_interface name="position"/>
+      </joint>  
 
       <joint name="${prefix}angular_velocity_joint">
-        <command_interface name="velocity">     <!-- Add/Remove interfaces as needed -->
-          <param name="min">-200</param> <!-- -1 -->
-          <param name="max">200</param> <!-- 1 -->
+        <command_interface name="velocity">
+          <param name="min">-1.0</param>
+          <param name="max">1.0</param>
         </command_interface>
-        <command_interface name="position"/>
-        <state_interface name="position">
-          <param name="initial_value">0.0</param>
-        </state_interface>
-        <state_interface name="velocity"/>
-        <state_interface name="acceleration"/>
+        <state_interface name="position"/>
       </joint>
+      <!-- Joint definitions end -->
+
+      <!-- Sensor definitions -->
+      <sensor name="${prefix}sensor_data">
+        <state_interface name="bumps_right"/>
+        <state_interface name="bumps_left"/>
+        <state_interface name="wheeldrops_right"/>
+        <state_interface name="wheeldrops_left"/>
+        <state_interface name="wheeldrops_caster"/>
+        <state_interface name="wall"/>
+        <state_interface name="cliff_left"/>
+        <state_interface name="cliff_front_left"/>
+        <state_interface name="cliff_front_right"/>
+        <state_interface name="cliff_right"/>
+        <state_interface name="virtual_wall"/>
+        <state_interface name="motor_overcurrents_sidebrush"/>
+        <state_interface name="motor_overcurrents_vacuum"/>
+        <state_interface name="motor_overcurrents_mainbrush"/>
+        <state_interface name="motor_overcurrents_driveright"/> 
+        <state_interface name="motor_overcurrents_driveleft"/>
+        <state_interface name="dirt_detector_left"/>
+        <state_interface name="dirt_detector_right"/>
+        <state_interface name="remote_opcode"/>
+        <state_interface name="button_max"/>
+        <state_interface name="button_clean"/>
+        <state_interface name="button_spot"/>
+        <state_interface name="button_power"/>
+        <state_interface name="charging_state"/>  
+        <state_interface name="voltage"/>
+        <state_interface name="current"/>
+        <state_interface name="temperature"/>
+        <state_interface name="charge"/>
+        <state_interface name="capacity"/>
+      </sensor>
 
     </ros2_control>
 

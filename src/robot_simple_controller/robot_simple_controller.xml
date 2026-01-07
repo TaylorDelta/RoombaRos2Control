@@ -18,11 +18,11 @@ Source of this file are templates in
 [RosTeamWorkspace](https://github.com/StoglRobotics/ros_team_workspace) repository.
 -->
 
-<library path="dummy_package_namespace">
-  <class name="dummy_package_namespace/DummyClassName"
-         type="dummy_package_namespace::DummyClassName" base_class_type="controller_interface::ControllerInterface">
+<library path="robot_simple_controller">
+  <class name="robot_simple_controller/RobotSimpleController"
+         type="robot_simple_controller::RobotSimpleController" base_class_type="controller_interface::ControllerInterface">
   <description>
-    DummyClassName ros2_control controller.
+    RobotSimpleController ros2_control controller.
   </description>
   </class>
 </library>

@@ -8,7 +8,8 @@
   <xacro:arg name="mock_sensor_commands" default="false"/>
   <xacro:arg name="sim_gazebo_classic" default="false"/>
   <xacro:arg name="sim_gazebo" default="false"/>
-  <xacro:arg name="simulation_controllers" default=""/>
+  <xacro:arg name="simulation_controllers" default="" />
+  <xacro:arg name="wheelbase" default="0.235"/> <!-- set for your model -->
 
   <xacro:include filename="$(find robot_description)/urdf/robot_x/robot_x_macro.xacro"/>
   <xacro:include filename="$(find robot_description)/urdf/robot_x/robot_x_macro.ros2_control.xacro"/>
@@ -22,6 +23,7 @@
     <origin xyz="0 0 0" rpy="0 0 0"/>          <!-- position robot in the world -->
   </xacro:robot_x>
 
+  <!-- Load ros2_control macro with parameters -->
   <xacro:robot_x_ros2_control
     name="robot_x"
     prefix="$(arg prefix)"
@@ -29,6 +31,7 @@
     mock_sensor_commands="$(arg mock_sensor_commands)"
     sim_gazebo_classic="$(arg sim_gazebo_classic)"
     sim_gazebo="$(arg sim_gazebo)"
-    simulation_controllers="$(arg simulation_controllers)"/>
+    simulation_controllers="$(arg simulation_controllers)"
+    wheelbase="$(arg wheelbase)"/>
 
 </robot>

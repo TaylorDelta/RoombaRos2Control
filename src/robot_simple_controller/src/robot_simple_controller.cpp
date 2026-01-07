@@ -1,5 +1,4 @@
-// Copyright (c) 2025, TaylorDelta
-// Copyright (c) 2025, Stogl Robotics Consulting UG (haftungsbeschränkt) (template)
+// Copyright (c) 2022, Stogl Robotics Consulting UG (haftungsbeschränkt) (template)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,7 +17,7 @@
 // [RosTeamWorkspace](https://github.com/StoglRobotics/ros_team_workspace) repository.
 //
 
-#include "dummy_package_namespace/dummy_controller.hpp"
+#include "robot_simple_controller/robot_simple_controller.hpp"
 
 #include <limits>
 #include <memory>
@@ -26,6 +25,12 @@
 #include <vector>
 
 #include "controller_interface/helpers.hpp"
+
+#include "geometry_msgs/msg/twist.hpp"
+#include "std_msgs/msg/int32.hpp"
+#include "nav_msgs/msg/odometry.hpp"
+
+
 
 namespace
 {  // utility
@@ -43,7 +48,7 @@ static constexpr rmw_qos_profile_t rmw_qos_profile_services_hist_keep_all = {
   RMW_QOS_LIVELINESS_LEASE_DURATION_DEFAULT,
   false};
 
-using ControllerReferenceMsg = dummy_package_namespace::DummyClassName::ControllerReferenceMsg;
+using ControllerReferenceMsg = robot_simple_controller::RobotSimpleController::ControllerReferenceMsg;
 
 // called from RT control loop
 void reset_controller_reference_msg(
@@ -57,17 +62,17 @@ void reset_controller_reference_msg(
 
 }  // namespace
 
-namespace dummy_package_namespace
+namespace robot_simple_controller
 {
-DummyClassName::DummyClassName() : controller_interface::ControllerInterface() {}
+RobotSimpleController::RobotSimpleController() : controller_interface::ControllerInterface() {}
 
-controller_interface::CallbackReturn DummyClassName::on_init()
+controller_interface::CallbackReturn RobotSimpleController::on_init()
 {
   control_mode_.initRT(control_mode_type::FAST);
 
   try
   {
-    param_listener_ = std::make_shared<dummy_controller::ParamListener>(get_node());
+    param_listener_ = std::make_shared<robot_simple_controller::ParamListener>(get_node());
   }
   catch (const std::exception & e)
   {
@@ -78,7 +83,7 @@ controller_interface::CallbackReturn DummyClassName::on_init()
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
-controller_interface::CallbackReturn DummyClassName::on_configure(
+controller_interface::CallbackReturn RobotSimpleController::on_configure(
   const rclcpp_lifecycle::State & /*previous_state*/)
 {
   params_ = param_listener_->get_params();
@@ -109,7 +114,17 @@ controller_interface::CallbackReturn DummyClassName::on_configure(
   // Reference Subscriber
   ref_subscriber_ = get_node()->create_subscription<ControllerReferenceMsg>(
     "~/reference", subscribers_qos,
-    std::bind(&DummyClassName::reference_callback, this, std::placeholders::_1));
+    std::bind(&RobotSimpleController::reference_callback, this, std::placeholders::_1));
+
+  // CMD_VEL Subscriber
+  cmd_vel_subscriber_ = get_node()->create_subscription<geometry_msgs::msg::Twist>(
+    "/cmd_vel", subscribers_qos,
+    std::bind(&RobotSimpleController::cmd_vel_callback, this, std::placeholders::_1));
+
+  // CLEAN_MODE Subscriber
+  clean_mode_subscriber_ = get_node()->create_subscription<std_msgs::msg::Int32>(
+    "/robot/clean_mode", subscribers_qos,
+    std::bind(&RobotSimpleController::clean_mode_callback, this, std::placeholders::_1));
 
   std::shared_ptr<ControllerReferenceMsg> msg = std::make_shared<ControllerReferenceMsg>();
   reset_controller_reference_msg(msg, params_.joints);
@@ -155,11 +170,51 @@ controller_interface::CallbackReturn DummyClassName::on_configure(
   state_publisher_->msg_.header.frame_id = params_.joints[0];
   state_publisher_->unlock();
 
+  // Odometry publisher
+  odom_publisher_ = get_node()->create_publisher<nav_msgs::msg::Odometry>("/odom", rclcpp::SystemDefaultsQoS());
+
   RCLCPP_INFO(get_node()->get_logger(), "configure successful");
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
-void DummyClassName::reference_callback(const std::shared_ptr<ControllerReferenceMsg> msg)
+// callback for /cmd_vel topic
+void RobotSimpleController::cmd_vel_callback(const std::shared_ptr<geometry_msgs::msg::Twist> msg)
+{   
+  // Example: map linear.x to first joint, angular.z to second joint
+  // linear.x send to linear_velocity_joint/velocity
+  // angular.z send to angular_velocity_joint/velocity
+  
+  
+  // Print received cmd_vel
+  RCLCPP_INFO(
+    get_node()->get_logger(),
+    "Received cmd_vel: linear.x = %f, angular.z = %f",
+    msg->linear.x, msg->angular.z); 
+  auto current_ref = input_ref_.readFromRT();
+  if (params_.joints.size() >= 2)
+  {
+    (*current_ref)->displacements[3] = msg->linear.x;
+    (*current_ref)->displacements[4] = msg->angular.z;
+  }
+  
+}
+
+// callback for /robot/clean_mode topic
+void RobotSimpleController::clean_mode_callback(const std::shared_ptr<std_msgs::msg::Int32> msg)
+{   
+  // Print received clean_mode
+  RCLCPP_INFO(
+    get_node()->get_logger(),
+    "Received clean_mode: %d",
+    msg->data); 
+  if (params_.joints.size() >= 3)
+  {
+    auto current_ref = input_ref_.readFromRT();
+    (*current_ref)->displacements[2] = static_cast<double>(msg->data);
+  }
+}
+
+void RobotSimpleController::reference_callback(const std::shared_ptr<ControllerReferenceMsg> msg)
 {
   if (msg->joint_names.size() == params_.joints.size())
   {
@@ -174,7 +229,7 @@ void DummyClassName::reference_callback(const std::shared_ptr<ControllerReferenc
   }
 }
 
-controller_interface::InterfaceConfiguration DummyClassName::command_interface_configuration() const
+controller_interface::InterfaceConfiguration RobotSimpleController::command_interface_configuration() const
 {
   controller_interface::InterfaceConfiguration command_interfaces_config;
   command_interfaces_config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
@@ -183,12 +238,14 @@ controller_interface::InterfaceConfiguration DummyClassName::command_interface_c
   for (const auto & joint : params_.joints)
   {
     command_interfaces_config.names.push_back(joint + "/" + params_.interface_name);
+    RCLCPP_INFO(get_node()->get_logger(), "Command joint: %s", joint.c_str());
   }
+
 
   return command_interfaces_config;
 }
 
-controller_interface::InterfaceConfiguration DummyClassName::state_interface_configuration() const
+controller_interface::InterfaceConfiguration RobotSimpleController::state_interface_configuration() const
 {
   controller_interface::InterfaceConfiguration state_interfaces_config;
   state_interfaces_config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
@@ -197,12 +254,13 @@ controller_interface::InterfaceConfiguration DummyClassName::state_interface_con
   for (const auto & joint : state_joints_)
   {
     state_interfaces_config.names.push_back(joint + "/" + params_.interface_name);
+    RCLCPP_INFO(get_node()->get_logger(), "State joint: %s", joint.c_str());
   }
 
   return state_interfaces_config;
 }
 
-controller_interface::CallbackReturn DummyClassName::on_activate(
+controller_interface::CallbackReturn RobotSimpleController::on_activate(
   const rclcpp_lifecycle::State & /*previous_state*/)
 {
   // TODO(anyone): if you have to manage multiple interfaces that need to be sorted check
@@ -215,7 +273,7 @@ controller_interface::CallbackReturn DummyClassName::on_activate(
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
-controller_interface::CallbackReturn DummyClassName::on_deactivate(
+controller_interface::CallbackReturn RobotSimpleController::on_deactivate(
   const rclcpp_lifecycle::State & /*previous_state*/)
 {
   // TODO(anyone): depending on number of interfaces, use definitions, e.g., `CMD_MY_ITFS`,
@@ -227,7 +285,7 @@ controller_interface::CallbackReturn DummyClassName::on_deactivate(
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
-controller_interface::return_type DummyClassName::update(
+controller_interface::return_type RobotSimpleController::update(
   const rclcpp::Time & time, const rclcpp::Duration & /*period*/)
 {
   auto current_ref = input_ref_.readFromRT();
@@ -255,12 +313,27 @@ controller_interface::return_type DummyClassName::update(
     state_publisher_->unlockAndPublish();
   }
 
+  if (odom_publisher_ && odom_publisher_->get_subscription_count() > 0)
+  {
+    nav_msgs::msg::Odometry odom_msg;
+    odom_msg.header.stamp = time;
+    odom_msg.header.frame_id = "odom";
+
+    // Assuming pose_x and pose_y are the first two state interfaces
+    odom_msg.pose.pose.position.x = state_interfaces_[0].get_value();
+    odom_msg.pose.pose.position.y = state_interfaces_[1].get_value();
+    odom_msg.pose.pose.position.z = state_interfaces_[2].get_value();
+
+
+    odom_publisher_->publish(odom_msg);
+  }
+
   return controller_interface::return_type::OK;
 }
 
-}  // namespace dummy_package_namespace
+}  // namespace robot_simple_controller
 
 #include "pluginlib/class_list_macros.hpp"
 
 PLUGINLIB_EXPORT_CLASS(
-  dummy_package_namespace::DummyClassName, controller_interface::ControllerInterface)
+  robot_simple_controller::RobotSimpleController, controller_interface::ControllerInterface)

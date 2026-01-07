@@ -17,7 +17,7 @@
 # [RosTeamWorkspace](https://github.com/StoglRobotics/ros_team_workspace) repository.
 #
 
-test_dummy_controller:
+test_robot_simple_controller:
   ros__parameters:
 
     joints:

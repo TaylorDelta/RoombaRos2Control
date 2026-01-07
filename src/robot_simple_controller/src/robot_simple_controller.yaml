@@ -17,7 +17,7 @@
 # [RosTeamWorkspace](https://github.com/StoglRobotics/ros_team_workspace) repository.
 #
 
-dummy_controller:
+robot_simple_controller:
   joints: {
     type: string_array,
     default_value: [],

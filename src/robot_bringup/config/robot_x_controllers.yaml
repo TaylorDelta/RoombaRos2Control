@@ -21,7 +21,7 @@
 
 controller_manager:
   ros__parameters:
-    update_rate: 30  # Hz
+    update_rate: 10  # Hz
 
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
@@ -36,35 +36,58 @@ controller_manager:
       type: joint_trajectory_controller/JointTrajectoryController
 
     robot_simple_controller:              # delete entry if controller is not applicable
-      type: dummy_package_namespace/DummyClassName
+      type: robot_simple_controller/RobotSimpleController
+
+    # add diff_drive_controller if applicable
+    diff_drive_controller:
+      type: diff_drive_controller/DiffDriveController
 
 
+diff_drive_controller:                  # delete entry if controller is not applicable
+  ros__parameters:
+    left_wheel_names: ["left_wheel_joint"]
+    right_wheel_names: ["right_wheel_joint"]
+    wheel_separation: 0.235  # meters
+    wheel_radius: 1.0      # meters
+    command_timeout: 2     # seconds
+    velocity_rolling_window_size: 2
+    position_feedback: false   # default
+    open_loop: true          # default
 
 forward_position_controller:                  # delete entry if controller is not applicable
   ros__parameters:
     joints:
-      - linear_velocity_joint
-      - angular_velocity_joint
+      - left_wheel_joint
+      - right_wheel_joint
     interface_name: position
 
 forward_velocity_controller:                  # delete entry if controller is not applicable
   ros__parameters:
     joints:
-      - linear_velocity_joint
-      - angular_velocity_joint
+      - left_wheel_joint
+      - right_wheel_joint
 
-    interface_name: velocity
+    interface_name: position
 
-joint_trajectory_controller:                  # delete entry if controller is not applicable
+robot_simple_controller:
   ros__parameters:
     joints:
       - linear_velocity_joint
       - angular_velocity_joint
+      - clean_mode_joint   # <-- your custom interface
+    interface_name: velocity
+
+
+joint_trajectory_controller:                  # delete entry if controller is not applicable
+  ros__parameters:
+    joints:
+      - left_wheel_joint
+      - right_wheel_joint
+
 
 
     command_interfaces:
       - velocity
-      - position
     state_interfaces:
       - position
       - velocity
@@ -79,14 +102,3 @@ joint_trajectory_controller:                  # delete entry if controller is no
       goal_time: 0.0 # Defaults to 0.0 (start immediately)
 
 
-robot_simple_controller:                  # delete entry if controller is not applicable
-  ros__parameters:
-    joints:
-      - linear_velocity_joint
-      - angular_velocity_joint
-    command_interfaces:
-      - velocity
-    state_interfaces:
-      - velocity
-
-    state_publish_rate: 50.0 # Defaults to 50

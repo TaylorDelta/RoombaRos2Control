@@ -1,5 +1,4 @@
-// Copyright (c) 2025, TaylorDelta
-// Copyright (c) 2025, Stogl Robotics Consulting UG (haftungsbeschränkt) (template)
+// Copyright (c) 2024, Stogl Robotics Consulting UG (haftungsbeschränkt) (template)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,8 +17,8 @@
 // [RosTeamWorkspace](https://github.com/StoglRobotics/ros_team_workspace) repository.
 //
 
-#ifndef TEMPLATES__ROS2_CONTROL__CONTROLLER__DUMMY_PACKAGE_NAMESPACE__VALIDATE_DUMMY_CONTROLLER_PARAMETERS_HPP_
-#define TEMPLATES__ROS2_CONTROL__CONTROLLER__DUMMY_PACKAGE_NAMESPACE__VALIDATE_DUMMY_CONTROLLER_PARAMETERS_HPP_
+#ifndef ROBOT_SIMPLE_CONTROLLER__VALIDATE_ROBOT_SIMPLE_CONTROLLER_PARAMETERS_HPP_
+#define ROBOT_SIMPLE_CONTROLLER__VALIDATE_ROBOT_SIMPLE_CONTROLLER_PARAMETERS_HPP_
 
 #include <string>
 
@@ -41,4 +40,4 @@ Result forbidden_interface_name_prefix(rclcpp::Parameter const & parameter)
 
 }  // namespace parameter_traits
 
-#endif  // TEMPLATES__ROS2_CONTROL__CONTROLLER__DUMMY_PACKAGE_NAMESPACE__VALIDATE_DUMMY_CONTROLLER_PARAMETERS_HPP_
+#endif  // ROBOT_SIMPLE_CONTROLLER__VALIDATE_ROBOT_SIMPLE_CONTROLLER_PARAMETERS_HPP_

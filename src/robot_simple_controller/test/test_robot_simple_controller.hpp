@@ -1,5 +1,4 @@
-// Copyright (c) 2025, TaylorDelta
-// Copyright (c) 2025, Stogl Robotics Consulting UG (haftungsbeschränkt) (template)
+// Copyright (c) 2022, Stogl Robotics Consulting UG (haftungsbeschränkt) (template)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,8 +17,8 @@
 // [RosTeamWorkspace](https://github.com/StoglRobotics/ros_team_workspace) repository.
 //
 
-#ifndef TEMPLATES__ROS2_CONTROL__CONTROLLER__TEST_DUMMY_CONTROLLER_HPP_
-#define TEMPLATES__ROS2_CONTROL__CONTROLLER__TEST_DUMMY_CONTROLLER_HPP_
+#ifndef TEMPLATES__ROS2_CONTROL__CONTROLLER__TEST_ROBOT_SIMPLE_CONTROLLER_HPP_
+#define TEMPLATES__ROS2_CONTROL__CONTROLLER__TEST_ROBOT_SIMPLE_CONTROLLER_HPP_
 
 #include <chrono>
 #include <limits>
@@ -29,7 +28,7 @@
 #include <utility>
 #include <vector>
 
-#include "dummy_package_namespace/dummy_controller.hpp"
+#include "robot_simple_controller/robot_simple_controller.hpp"
 #include "gmock/gmock.h"
 #include "hardware_interface/loaned_command_interface.hpp"
 #include "hardware_interface/loaned_state_interface.hpp"
@@ -41,9 +40,9 @@
 #include "rclcpp_lifecycle/node_interfaces/lifecycle_node_interface.hpp"
 
 // TODO(anyone): replace the state and command message types
-using ControllerStateMsg = dummy_package_namespace::DummyClassName::ControllerStateMsg;
-using ControllerReferenceMsg = dummy_package_namespace::DummyClassName::ControllerReferenceMsg;
-using ControllerModeSrvType = dummy_package_namespace::DummyClassName::ControllerModeSrvType;
+using ControllerStateMsg = robot_simple_controller::RobotSimpleController::ControllerStateMsg;
+using ControllerReferenceMsg = robot_simple_controller::RobotSimpleController::ControllerReferenceMsg;
+using ControllerModeSrvType = robot_simple_controller::RobotSimpleController::ControllerModeSrvType;
 
 namespace
 {
@@ -52,20 +51,20 @@ constexpr auto NODE_ERROR = controller_interface::CallbackReturn::ERROR;
 }  // namespace
 
 // subclassing and friending so we can access member variables
-class TestableDummyClassName : public dummy_package_namespace::DummyClassName
+class TestableRobotSimpleController : public robot_simple_controller::RobotSimpleController
 {
-  FRIEND_TEST(DummyClassNameTest, all_parameters_set_configure_success);
-  FRIEND_TEST(DummyClassNameTest, activate_success);
-  FRIEND_TEST(DummyClassNameTest, reactivate_success);
-  FRIEND_TEST(DummyClassNameTest, test_setting_slow_mode_service);
-  FRIEND_TEST(DummyClassNameTest, test_update_logic_fast);
-  FRIEND_TEST(DummyClassNameTest, test_update_logic_slow);
+  FRIEND_TEST(RobotSimpleControllerTest, all_parameters_set_configure_success);
+  FRIEND_TEST(RobotSimpleControllerTest, activate_success);
+  FRIEND_TEST(RobotSimpleControllerTest, reactivate_success);
+  FRIEND_TEST(RobotSimpleControllerTest, test_setting_slow_mode_service);
+  FRIEND_TEST(RobotSimpleControllerTest, test_update_logic_fast);
+  FRIEND_TEST(RobotSimpleControllerTest, test_update_logic_slow);
 
 public:
   controller_interface::CallbackReturn on_configure(
     const rclcpp_lifecycle::State & previous_state) override
   {
-    auto ret = dummy_package_namespace::DummyClassName::on_configure(previous_state);
+    auto ret = robot_simple_controller::RobotSimpleController::on_configure(previous_state);
     // Only if on_configure is successful create subscription
     if (ret == CallbackReturn::SUCCESS)
     {
@@ -108,7 +107,7 @@ private:
 
 // We are using template class here for easier reuse of Fixture in specializations of controllers
 template <typename CtrlType>
-class DummyClassNameFixture : public ::testing::Test
+class RobotSimpleControllerFixture : public ::testing::Test
 {
 public:
   static void SetUpTestCase() {}
@@ -120,11 +119,11 @@ public:
 
     command_publisher_node_ = std::make_shared<rclcpp::Node>("command_publisher");
     command_publisher_ = command_publisher_node_->create_publisher<ControllerReferenceMsg>(
-      "/test_dummy_controller/commands", rclcpp::SystemDefaultsQoS());
+      "/test_robot_simple_controller/commands", rclcpp::SystemDefaultsQoS());
 
     service_caller_node_ = std::make_shared<rclcpp::Node>("service_caller");
     slow_control_service_client_ = service_caller_node_->create_client<ControllerModeSrvType>(
-      "/test_dummy_controller/set_slow_control_mode");
+      "/test_robot_simple_controller/set_slow_control_mode");
   }
 
   static void TearDownTestCase() {}
@@ -132,7 +131,7 @@ public:
   void TearDown() { controller_.reset(nullptr); }
 
 protected:
-  void SetUpController(const std::string controller_name = "test_dummy_controller")
+  void SetUpController(const std::string controller_name = "test_robot_simple_controller")
   {
     ASSERT_EQ(
       controller_->init(controller_name, "", 0, "", controller_->define_custom_node_options()),
@@ -171,7 +170,7 @@ protected:
     rclcpp::Node test_subscription_node("test_subscription_node");
     auto subs_callback = [&](const ControllerStateMsg::SharedPtr) {};
     auto subscription = test_subscription_node.create_subscription<ControllerStateMsg>(
-      "/test_dummy_controller/state", 10, subs_callback);
+      "/test_robot_simple_controller/state", 10, subs_callback);
 
     // call update to publish the test value
     ASSERT_EQ(
@@ -265,11 +264,11 @@ protected:
   std::vector<hardware_interface::CommandInterface> command_itfs_;
 
   // Test related parameters
-  std::unique_ptr<TestableDummyClassName> controller_;
+  std::unique_ptr<TestableRobotSimpleController> controller_;
   rclcpp::Node::SharedPtr command_publisher_node_;
   rclcpp::Publisher<ControllerReferenceMsg>::SharedPtr command_publisher_;
   rclcpp::Node::SharedPtr service_caller_node_;
   rclcpp::Client<ControllerModeSrvType>::SharedPtr slow_control_service_client_;
 };
 
-#endif  // TEMPLATES__ROS2_CONTROL__CONTROLLER__TEST_DUMMY_CONTROLLER_HPP_
+#endif  // TEMPLATES__ROS2_CONTROL__CONTROLLER__TEST_ROBOT_SIMPLE_CONTROLLER_HPP_

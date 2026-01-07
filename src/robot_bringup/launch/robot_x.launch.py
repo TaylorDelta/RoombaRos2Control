@@ -87,9 +87,10 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "robot_controller",
-            default_value="forward_velocity_controller",
+            default_value="diff_drive_controller",
+            #default_value="robot_simple_controller",
             #default_value="joint_trajectory_controller",
-            choices=["forward_velocity_controller","forward_position_controller", "joint_trajectory_controller"],
+            choices=["diff_drive_controller","forward_velocity_controller","forward_position_controller", "joint_trajectory_controller", "robot_simple_controller"],
             description="Robot controller to start.",
         )
     )
@@ -160,7 +161,7 @@ def generate_launch_description():
         arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
     )
 
-    robot_controller_names = [robot_controller]
+    robot_controller_names = [robot_controller, 'robot_simple_controller']
     robot_controller_spawners = []
     for controller in robot_controller_names:
         robot_controller_spawners += [
@@ -170,15 +171,15 @@ def generate_launch_description():
                 arguments=[controller, "-c", "/controller_manager"],
             )
         ]
-
-    inactive_robot_controller_names = ["set_some_inactive_controller"]
+    
+    inactive_robot_controller_names = ["robot_simple_controller"]
     inactive_robot_controller_spawners = []
     for controller in inactive_robot_controller_names:
         inactive_robot_controller_spawners += [
             Node(
                 package="controller_manager",
                 executable="spawner",
-                arguments=[controller, "-c", "/controller_manager", "--inactive"],
+                arguments=[controller, "-c", "/controller_manager"],#, "--inactive"],
             )
         ]
 
@@ -211,6 +212,8 @@ def generate_launch_description():
             )
         ]
 
+
+
     # Delay start of inactive_robot_controller_names after other controllers
     delay_inactive_robot_controller_spawners_after_joint_state_broadcaster_spawner = []
     for i, controller in enumerate(inactive_robot_controller_spawners):
@@ -237,4 +240,5 @@ def generate_launch_description():
         ]
         + delay_robot_controller_spawners_after_joint_state_broadcaster_spawner
         #+ delay_inactive_robot_controller_spawners_after_joint_state_broadcaster_spawner
+
     )
