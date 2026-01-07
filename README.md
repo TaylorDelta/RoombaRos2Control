@@ -104,6 +104,6 @@ ROS2 and the ROS community for providing an open-source platform for robotics de
 
 Feel free to modify the README as needed for your specific project! If you have further questions or need more details, let me know!
 
-This project uses code from [OriginalProject](https://github.com/b-robotized/ros_team_workspace), licensed under the Apache License 2.0.
+This project uses code from [RosTeamWorkspace](https://github.com/b-robotized/ros_team_workspace), licensed under the Apache License 2.0.
 
 
