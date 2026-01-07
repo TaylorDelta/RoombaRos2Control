@@ -1,6 +1,6 @@
 # Roomba Hardware Interface and ROS2 Controller
 
-This project implements a ROS2 hardware interface and controller for the iRobot® Roomba® using the Serial Command Interface (SCI) specification. It provides a seamless way to control Roomba's movement via the Forward Velocity Controller in ROS2.
+This project implements a ROS2 hardware interface and controller for the iRobot® Roomba® using the Serial Command Interface (SCI) specification. It provides a seamless way to control Roomba's movement via the Diff Drive Controller in ROS2.
 
 ## Features
 
