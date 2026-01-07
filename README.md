@@ -56,27 +56,30 @@ This will start the necessary ROS2 nodes for controlling your Roomba robot.
 
 ## Sending Commands to Roomba
 
-You can use the Joint Trajectory Controller to send movement commands to Roomba. To send a trajectory command, run the following command in a separate terminal:
+You can use the Diff Drive Controller to send movement commands to Roomba. To send a command, run the following command in a separate terminal:
 ```md
-ros2 topic pub /forward_velocity_controller/commands std_msgs/msg/Float64MultiArray "data: [Velocity, Radius]" --once
+ros2 topic pub /diff_drive_controller/cmd_vel geometry_msgs/msg/TwistStamped "{header: {stamp: {sec: 0, nanosec: 0}, frame_id: 'base_link'}, twist: {linear: {x: 0.1, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.2}}}" -r 10
 ```
-### Explanation of Command
-- **Velocity**: 
-  - Defines the speed of the robot in millimeters per second.
-  - The valid range for velocity is **-500.0 to 500.0 mm/s**:
-    - A positive value indicates **forward motion**.
-    - A negative value indicates **reverse motion**.
-- **Radius**: 
-  - Defines the turning radius of the robot in millimeters.
-  - The valid range for radius is **-2000.0 to 2000.0 mm**:
-    - A positive value results in a **counter-clockwise** turn (left turn).
-    - A negative value results in a **clockwise** turn (right turn).
-    - A radius of `0` corresponds to **moving in a straight line**.
+This results in the Roomba driving a circle with diameter of 1m at a speed of 100mm/s
 
-- **Special Cases** for Turning in Place:
-  - **Turn in place clockwise**: Set **radius = -1**.
-  - **Turn in place counter-clockwise**: Set **radius = 1**.
+## Using Webcontrol with Raspberry Pi
 
+```md
+ros2 launch rosbridge_server rosbridge_websocket_launch.xml
+```
+
+```md
+cd roomba_web
+```
+
+```md
+python3 -m http.server 8000
+```
+
+Open on a device with internet: 
+```md
+http://ip_adress_of_raspberry:8000/
+```
 
 ## Troubleshooting
 
