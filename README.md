@@ -89,6 +89,8 @@ Verify that the correct serial port is being used in your launch files.
 
 If commands are not working, check the Roomba's logs to see if there are any communication issues.
 
+If you encounter a problem that isn’t already documented, please create a new issue. Make sure to clearly describe the problem, steps to reproduce it, and any relevant error messages.
+
 ## License
 
 This project is licensed under the Apache 2.0 License - see the LICENSE
@@ -101,4 +103,7 @@ The iRobot® Roomba® Serial Command Interface (SCI) Specification
 ROS2 and the ROS community for providing an open-source platform for robotics development.
 
 Feel free to modify the README as needed for your specific project! If you have further questions or need more details, let me know!
+
+This project uses code from [OriginalProject](https://github.com/b-robotized/ros_team_workspace), licensed under the Apache License 2.0.
+
 
