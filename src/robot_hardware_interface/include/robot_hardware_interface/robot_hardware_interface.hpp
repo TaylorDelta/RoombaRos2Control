@@ -76,6 +76,10 @@ private:
   // Joint names
   std::vector<std::string> joint_names_;
 
+  // Motors states and commands
+  std::vector<double> motor_commands_;
+  std::vector<double> motor_states_;
+
   // Wheelbase parameter
   double wheelbase_;
 
@@ -97,6 +101,8 @@ private:
   double distance_;                // Distance sensor reading (in meters, for example)
   double angle_;                   // Angle sensor reading (in radians or degrees)
 
+  uint32_t previous_left_encoder_counts_; // Store previous left encoder counts
+  uint32_t previous_right_encoder_counts_; // Store previous right encoder counts
 };
 
 }  // namespace robot_hardware_interface

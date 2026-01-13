@@ -58,6 +58,10 @@ namespace robot_hardware_interface
     // Resize joint names vector
     joint_names_.resize(info_.joints.size());
 
+    // Motor states and commands
+    motor_commands_.resize(info_.gpios.size(), 0.0);
+    motor_states_.resize(info_.gpios.size(), 0.0);   
+
     // Get wheelbase parameter from URDF
     wheelbase_ = std::stod(info_.hardware_parameters["wheelbase"]);
 
@@ -158,10 +162,13 @@ namespace robot_hardware_interface
     tty.c_iflag &= ~(IXON | IXOFF | IXANY);
     tty.c_oflag &= ~OPOST;
 
+    tty.c_cc[VTIME] = 10;   // 1 second timeout
+
     if (tcsetattr(serial_fd_, TCSANOW, &tty) != 0)
     {
       RCLCPP_ERROR(logger_, "tcsetattr() failed");
     }
+
 
     // Send Roomba startup commands
     uint8_t start_cmd = 128;
@@ -170,15 +177,10 @@ namespace robot_hardware_interface
       RCLCPP_ERROR(logger_, "Failed to send START command (128)");
     }
 
-    // Set SCI to FULL mode
-    uint8_t full_cmd = 132;
-    if (::write(serial_fd_, &full_cmd, 1) != 1)
-    {
-      RCLCPP_ERROR(logger_, "Failed to send FULL MODE command (132)");
-    }
-
-    /*
+    
     // ---- Read Roomba Sensor Group 0 (26 bytes) ----
+    tcflush(serial_fd_, TCIFLUSH); // flush input buffer
+
     uint8_t sensor_cmd[2] = {142, 0};   // 142 = Sensor, 0 = Group 0 (26 bytes)
 
     if (::write(serial_fd_, sensor_cmd, 2) != 2) {
@@ -186,26 +188,22 @@ namespace robot_hardware_interface
         return hardware_interface::CallbackReturn::ERROR;
     }
 
-    usleep(10000); // give Roomba time to respond
+    usleep(100000);  // wait for 100 ms to allow data to be sent
 
     uint8_t response[26];
-    ssize_t bytes_read = ::read(serial_fd_, response, 26);  // Use ssize_t instead of int
-
-    RCLCPP_INFO(logger_,"Sensor Group 0 bytes read: %ld", bytes_read);
-
-    if (bytes_read < 0) {
-        RCLCPP_ERROR(logger_, "read() failed while reading sensor group 3");
-        return hardware_interface::CallbackReturn::ERROR;
+    size_t total_read = 0;
+    while (total_read < 26) {
+        ssize_t n = ::read(serial_fd_, response + total_read, 26 - total_read);
+        if (n < 0) { /* handle error */ }
+        total_read += n;
     }
+    //RCLCPP_INFO(logger_,"Sensor Group 0 bytes read: %ld", bytes_read);
 
-    std::stringstream ss;
-        for (int i = 0; i < bytes_read; i++) {
-            ss << std::hex << std::uppercase
-            << "0x" << static_cast<int>(response[i]);
-        if (i < bytes_read - 1) ss << " ";
-    }
+    // if (bytes_read < 0) {
+    //     RCLCPP_ERROR(logger_, "read() failed while reading sensor group 3");
+    //     //return hardware_interface::CallbackReturn::ERROR;
+    // }
 
-    RCLCPP_INFO(logger_, "Sensor Group 0 data: %s", ss.str().c_str());
 
 
     // Parse the sensor data (convert to double where needed)
@@ -214,7 +212,7 @@ namespace robot_hardware_interface
     hw_sensor_states_[1] = static_cast<double>((bumps_and_wheeldrops >> 1) & 1);  // Bit 1: Bump Left
     hw_sensor_states_[2] = static_cast<double>((bumps_and_wheeldrops >> 2) & 1);  // Bit 2: Wheel Drop Right
     hw_sensor_states_[3] = static_cast<double>((bumps_and_wheeldrops >> 3) & 1);  // Bit 3: Wheel Drop Left
-    hw_sensor_states_[4] = static_cast<double>((bumps_and_wheeldrops >> 4) & 1);  // Bit 4: Wheel Drop Caster
+    hw_sensor_states_[4] = 0.0;  // Bit 4: Wheel Drop Caster
     hw_sensor_states_[5] = static_cast<double>(response[1]);  // 1 byte, wall sensor
     hw_sensor_states_[6] = static_cast<double>(response[2]);  // 1 byte, left cliff sensor
     hw_sensor_states_[7] = static_cast<double>(response[3]);  // 1 byte, front left cliff sensor
@@ -223,7 +221,7 @@ namespace robot_hardware_interface
     hw_sensor_states_[10] = static_cast<double>(response[6]);  // 1 byte, virtual wall sensor
     uint8_t motor_overcurrents = response[7];
     hw_sensor_states_[11] = static_cast<double>(motor_overcurrents & 1);  // Bit 0: Side Brush
-    hw_sensor_states_[12] = static_cast<double>((motor_overcurrents >> 1) & 1);  // Bit 1: Vacuum
+    hw_sensor_states_[12] = 0.0;  // Bit 1: Vacuum
     hw_sensor_states_[13] = static_cast<double>((motor_overcurrents >> 2) & 1);  // Bit 2: Main Brush
     hw_sensor_states_[14] = static_cast<double>((motor_overcurrents >> 3) & 1);  // Bit 3: Drive Right
     hw_sensor_states_[15] = static_cast<double>((motor_overcurrents >> 4) & 1);  // Bit 4: Drive Left
@@ -281,17 +279,41 @@ namespace robot_hardware_interface
     RCLCPP_INFO(logger_, "  Charge: %f mAh", hw_sensor_states_[27]);
     RCLCPP_INFO(logger_, "  Capacity: %f mAh", hw_sensor_states_[28]);
     RCLCPP_INFO(logger_, "Roomba placed in FULL mode");
-    */
-   
-    // ----------
-    // Ask sensor data to empty buffers
-    uint8_t sensor_cmd[2] = {142, 2}; // 142 = Sensor, 1 = Group 1 (10 bytes)
+    
+    
+    // // ----------
+    // // Ask sensor data to empty buffers
+    // uint8_t sensor_cmd[2] = {142, 2}; // 142 = Sensor, 1 = Group 1 (10 bytes)
 
-    if (::write(serial_fd_, sensor_cmd, 2) != 2)
-    {
-      RCLCPP_INFO(logger_, "Empty Buffer (142,2)");
-      // return hardware_interface::return_type::ERROR;
-    }
+    // if (::write(serial_fd_, sensor_cmd, 2) != 2)
+    // {
+    //   RCLCPP_INFO(logger_, "Empty Buffer (142,2)");
+    //   // return hardware_interface::return_type::ERROR;
+    // }
+    tcflush(serial_fd_, TCIFLUSH); // flush input buffer
+    
+    // uint8_t sensor_cmd_149[4] = {149, 2, 43, 44}; // 149 = Sensor, 2 = Group 2 (6 bytes)
+
+    // if (::write(serial_fd_, sensor_cmd_149, 4) != 4)
+    // {
+    //   RCLCPP_ERROR(logger_, "Failed to request sensor group 0 (142,0)");
+    //   // return hardware_interface::return_type::ERROR;
+    // }
+    
+    // uint8_t response_2[4];
+    // ssize_t bytes_read_2 = ::read(serial_fd_, response_2, 4);  // Use ssize_t instead of int
+
+    // uint16_t left_wheel_encoder_counts_ = (static_cast<uint16_t>(response_2[0]) << 8) |
+    //                         static_cast<uint16_t>(response_2[1]);
+
+    // uint16_t right_wheel_encoder_counts_ = (static_cast<uint16_t>(response_2[2]) << 8) |
+    //                         static_cast<uint16_t>(response_2[3]);
+
+    // RCLCPP_INFO(logger_, "Initial Left Wheel Encoder Counts: %d", left_wheel_encoder_counts_);
+    // RCLCPP_INFO(logger_, "Initial Right Wheel Encoder Counts: %d", right_wheel_encoder_counts_);
+
+    // previous_left_encoder_counts_ = static_cast<int32_t>(left_wheel_encoder_counts_);
+    // previous_right_encoder_counts_ = static_cast<int32_t>(right_wheel_encoder_counts_);
 
     // ----------
 
@@ -307,6 +329,19 @@ namespace robot_hardware_interface
     last_velocity_ = 0;
     last_radius_ = 0;
     last_clean_mode_ = 6.0;
+
+    hw_states_velocity_[0] = 0.0; // left_wheel_joint position  
+    hw_states_velocity_[1] = 0.0; // right_wheel_joint position
+    hw_states_velocity_[2] = 6.0; // clean mode
+    hw_states_velocity_[3] = 0.0; // left_wheel_joint velocity
+    hw_states_velocity_[4] = 0.0; // right_wheel_joint velocity
+
+    // Set SCI to FULL mode
+    uint8_t full_cmd = 132;
+    if (::write(serial_fd_, &full_cmd, 1) != 1)
+    {
+      RCLCPP_ERROR(logger_, "Failed to send FULL MODE command (132)");
+    }
 
     RCLCPP_INFO(logger_, "Configuration successful.");
 
@@ -338,6 +373,19 @@ namespace robot_hardware_interface
           info_.sensors[0].name, info_.sensors[0].state_interfaces[i].name, &hw_sensor_states_[i]));
     }
 
+    // Export GPIO state interfaces
+    for (size_t i = 0; i < info_.gpios.size(); ++i)
+    { 
+      for (size_t j = 0; j < info_.gpios[i].state_interfaces.size(); ++j)
+      {
+        state_interfaces.emplace_back(
+            hardware_interface::StateInterface(
+                info_.gpios[i].name,   // GPIO name
+                info_.gpios[i].state_interfaces[j].name,               // Interface type for GPIO
+                &motor_states_[i]));    // Pointer to the GPIO state variable
+      }
+    }
+
     return state_interfaces;
   }
 
@@ -355,6 +403,20 @@ namespace robot_hardware_interface
           info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &hw_commands_[i]));
     }
 
+    // Export GPIO command interfaces
+    for (size_t i = 0; i < info_.gpios.size(); ++i)
+    { 
+      for (size_t j = 0; j < info_.gpios[i].command_interfaces.size(); ++j)
+      {
+        command_interfaces.emplace_back(
+            hardware_interface::CommandInterface(
+                info_.gpios[i].name,   // GPIO name
+                info_.gpios[i].command_interfaces[j].name,               // Interface type for GPIO
+                &motor_commands_[i]));    // Pointer to the GPIO command variable
+      }
+    }
+
+
     return command_interfaces;
   }
 
@@ -366,6 +428,126 @@ namespace robot_hardware_interface
     // prepare the robot to receive commands
     RCLCPP_INFO(logger_, "Activated...");
     // ============================
+
+    tcflush(serial_fd_, TCIFLUSH); // flush input buffer
+
+    // uint8_t sensor_cmd_149[4] = {149, 2, 43, 44}; // 149 = Sensor, 2 = Group 2 (6 bytes)
+
+    // if (::write(serial_fd_, sensor_cmd_149, 4) != 4)
+    // {
+    //   RCLCPP_ERROR(logger_, "Failed to request sensor group 0 (142,0)");
+    //   // return hardware_interface::return_type::ERROR;
+    // }
+
+    // uint8_t response_2[4];
+    // ssize_t bytes_read_2 = ::read(serial_fd_, response_2, 4);  // Use ssize_t instead of int
+
+    // uint16_t left_wheel_encoder_counts_ = (static_cast<uint16_t>(response_2[0]) << 8) |
+    //                         static_cast<uint16_t>(response_2[1]);
+
+    // uint16_t right_wheel_encoder_counts_ = (static_cast<uint16_t>(response_2[2]) << 8) |
+    //                         static_cast<uint16_t>(response_2[3]);
+
+    // RCLCPP_INFO(logger_, "Initial Left Wheel Encoder Counts: %d", left_wheel_encoder_counts_);
+    // RCLCPP_INFO(logger_, "Initial Right Wheel Encoder Counts: %d", right_wheel_encoder_counts_);
+
+    // previous_left_encoder_counts_ = static_cast<int32_t>(left_wheel_encoder_counts_);
+    // previous_right_encoder_counts_ = static_cast<int32_t>(right_wheel_encoder_counts_);
+
+
+    const uint8_t SENSOR_CMD_FLUSH[4] = {149, 2, 43, 44};  // Command to request encoder values
+    const int STABILITY_THRESHOLD = 10;  // Number of consecutive stable readings required to consider values stable
+    const int TIMEOUT_LIMIT = 100;  // Maximum number of iterations before timing out (to avoid infinite loop)
+
+    int stability_counter = 0;
+    int timeout_counter = 0;
+
+    // Initialize previous encoder counts to impossible values
+    previous_left_encoder_counts_ = 1234;
+    previous_right_encoder_counts_ = 1234;
+
+    uint16_t left_wheel_encoder_counts_ = 0;
+    uint16_t right_wheel_encoder_counts_ = 0;
+
+    while (timeout_counter < TIMEOUT_LIMIT)
+    { 
+        // Send the command to request encoder values
+        if (::write(serial_fd_, SENSOR_CMD_FLUSH, 4) != 4)
+        {
+            RCLCPP_ERROR(logger_, "Failed to send sensor command.");
+        }
+
+        uint8_t response_flush[4];
+        size_t total_read_2 = 0;
+        while (total_read_2 < 4) {
+            ssize_t n = ::read(serial_fd_, response_flush + total_read_2, 4 - total_read_2);
+            if (n < 0) { /* handle error */ }
+            total_read_2 += n;
+        }
+
+        // Combine the received bytes into encoder counts
+        left_wheel_encoder_counts_ = (static_cast<uint16_t>(response_flush[0]) << 8) |
+                                    static_cast<uint16_t>(response_flush[1]);
+
+        right_wheel_encoder_counts_ = (static_cast<uint16_t>(response_flush[2]) << 8) |
+                                      static_cast<uint16_t>(response_flush[3]);
+                                    
+        //RCLCPP_INFO(logger_, "Left Encoder: %d, Right Encoder: %d, Stability Counter: %d",left_wheel_encoder_counts_, right_wheel_encoder_counts_, stability_counter);
+        // Check if the encoder values have stabilized
+        if (left_wheel_encoder_counts_ == previous_left_encoder_counts_ &&
+            right_wheel_encoder_counts_ == previous_right_encoder_counts_)
+        {
+            stability_counter++;  // Increment counter if the values haven't changed
+        }
+        else
+        {
+            stability_counter = 0;  // Reset the counter if the values have changed
+        }
+
+        // If the values have been stable for the required number of iterations, break the loop
+        if (stability_counter >= STABILITY_THRESHOLD)
+        {
+            break;
+        }
+
+        // Store the current values for comparison in the next iteration
+        previous_left_encoder_counts_ = static_cast<int32_t>(left_wheel_encoder_counts_);
+        previous_right_encoder_counts_ = static_cast<int32_t>(right_wheel_encoder_counts_);
+
+        timeout_counter++;  // Increment the timeout counter to track iteration limit
+
+        // Small delay to avoid overwhelming the serial communication
+        usleep(100000);  // 10 ms
+    }
+
+    // Check if the loop timed out
+    if (timeout_counter >= TIMEOUT_LIMIT)
+    {
+        RCLCPP_WARN(logger_, "Timeout reached while waiting for stable encoder values.");
+    }
+
+    RCLCPP_INFO(logger_, "Encoder values have stabilized.");
+    RCLCPP_INFO(logger_, "Initial Left Wheel Encoder Counts: %d", left_wheel_encoder_counts_);
+    RCLCPP_INFO(logger_, "Initial Right Wheel Encoder Counts: %d", right_wheel_encoder_counts_);
+
+    // ----------
+
+    // Odometry
+    current_pose_x_ = 0.0;
+    current_pose_y_ = 0.0;
+    current_pose_theta_ = 0.0;
+
+    hw_states_position_[0] = current_pose_x_; // left_wheel_joint position
+    hw_states_position_[1] = current_pose_y_; // right_wheel_joint position
+    hw_states_position_[2] = 6.0; // clean mode
+    hw_states_position_[3] = current_pose_x_; // left_wheel_joint velocity
+    hw_states_position_[4] = current_pose_y_; // right_wheel_joint velocity
+
+    hw_states_velocity_[0] = 0.0; // left_wheel_joint position  
+    hw_states_velocity_[1] = 0.0; // right_wheel_joint position
+    hw_states_velocity_[2] = 6.0; // clean mode
+    hw_states_velocity_[3] = 0.0; // left_wheel_joint velocity
+    hw_states_velocity_[4] = 0.0; // right_wheel_joint velocity
 
     return CallbackReturn::SUCCESS;
   }
@@ -446,22 +628,39 @@ namespace robot_hardware_interface
     // read the current state from the robot hardware
     // ============================
 
-    uint8_t sensor_cmd[2] = {142, 2}; // 142 = Sensor, 2 = Group 2 (6 bytes)
+    // read encoder values from Roomba
+    // packages 43 and 44
+    // Serial sequence: [149][Number of Packets][Packet ID 1][Packet ID 2]...[Packet ID N]
+    // send 149 2 43 44
+ /*
+    uint8_t sensor_cmd[4] = {149, 2, 43, 44}; // 149 = Sensor, 2 = Group 2 (6 bytes)
 
-    if (::write(serial_fd_, sensor_cmd, 2) != 2)
+    if (::write(serial_fd_, sensor_cmd, 4) != 4)
     {
       RCLCPP_ERROR(logger_, "Failed to request sensor group 0 (142,0)");
       // return hardware_interface::return_type::ERROR;
     }
 
-    uint8_t response[6];
-    ssize_t bytes_read = ::read(serial_fd_, response, 6);  // Use ssize_t instead of int
+    uint8_t response[4];
+    ssize_t bytes_read = ::read(serial_fd_, response, 4);  // Use ssize_t instead of int
 
-    distance_ = static_cast<double>((static_cast<int16_t>(response[2] << 8 | response[3])));  // 2 bytes, signed distance (mm)
-    angle_ = static_cast<double>((static_cast<int16_t>(response[4] << 8 | response[5])));  // 2 bytes, signed angle (mm)
+    left_wheel_encoder_counts_ = static_cast<int16_t>(response[0] << 8 | response[1]);
+    right_wheel_encoder_counts_ = static_cast<int16_t>(response[2] << 8 | response[3]);
+
+    double left_wheel_difference = static_cast<double>(left_wheel_encoder_counts_ - last_left_encoder_counts_);
+    double right_wheel_difference = static_cast<double>(right_wheel_encoder_counts_ - last_right_encoder_counts_);
+    RCLCPP_DEBUG(logger_, "Left Wheel Encoder Counts: %d, Difference: %f", left_wheel_encoder_counts_, left_wheel_difference);
+    RCLCPP_DEBUG(logger_, "Right Wheel Encoder Counts: %d, Difference: %f", right_wheel_encoder_counts_, right_wheel_difference);
+
+    double tick_to_distance_ = (72 * 3.14159) / 508.8;  // in mm
+    double left_distance = (left_wheel_encoder_counts_-last_left_encoder_counts_) * tick_to_distance_;
+    double right_distance = (right_wheel_encoder_counts_-last_right_encoder_counts_) * tick_to_distance_;  // in mm
+
+    distance_ = (left_distance + right_distance) / 2.0;
+    angle_ = (right_distance - left_distance)/ 2.0;
 
     // Update odometry
-    current_pose_theta_ += (2 * angle_) / (wheelbase_ * 1000) * 3.14159; // times pi, there is an error
+    current_pose_theta_ += (2 * angle_) / (wheelbase_ * 1000);// * 3.14159; // times pi, there is an error
     current_pose_x_ -= distance_ * cos(current_pose_theta_); // use negative distance to match coordinate frame
     current_pose_y_ -= distance_ * sin(current_pose_theta_); //
 
@@ -475,6 +674,86 @@ namespace robot_hardware_interface
     hw_states_position_[4] = current_pose_y_; // right_wheel_joint position
     //hw_states_position_[5] = 0.0f; // right_wheel_joint position
 
+    hw_states_velocity_[3] = current_pose_x_; // left_wheel_joint position
+    hw_states_velocity_[4] = current_pose_y_; // right_wheel_joint position
+    //hw_states_velocity_[5] = 0.0f; // right_wheel_joint position
+
+    last_left_encoder_counts_ = left_wheel_encoder_counts_;
+    last_right_encoder_counts_ = right_wheel_encoder_counts_;
+   */
+    // ============================
+    // Test
+    // ============================
+    uint8_t sensor_cmd[4] = {149, 2, 43, 44}; // 149 = Sensor, packages 43 and 44
+
+    if (::write(serial_fd_, sensor_cmd, 4) != 4)
+    {
+      RCLCPP_ERROR(logger_, "Failed to request encoder counts (149,2,43,44)");
+      // return hardware_interface::return_type::ERROR;
+    }
+
+    uint8_t response[4];
+    ssize_t bytes_read = ::read(serial_fd_, response, 4);  // Use ssize_t instead of int
+
+    uint16_t left_wheel_encoder_counts_ = (static_cast<uint16_t>(response[0]) << 8) |
+                            static_cast<uint16_t>(response[1]);
+
+    uint16_t right_wheel_encoder_counts_ = (static_cast<uint16_t>(response[2]) << 8) |
+                            static_cast<uint16_t>(response[3]);
+
+    uint16_t previous_left_normalized = previous_left_encoder_counts_ & 0xFFFF; // normalize to 16 bits
+    uint16_t previous_right_normalized = previous_right_encoder_counts_ & 0xFFFF; // normalize to 16 bits
+
+    constexpr uint32_t ENCODER_MAX = 1u << 16;
+
+    uint32_t left_delta_ = 0;
+    if (left_wheel_encoder_counts_ >= previous_left_normalized) {
+        left_delta_ = static_cast<uint32_t>(left_wheel_encoder_counts_ - previous_left_normalized); // no overflow, normal increment
+    } else {
+        left_delta_ = static_cast<uint32_t>(left_wheel_encoder_counts_ + ENCODER_MAX) - previous_left_normalized; // overflow occurred
+    }
+    uint32_t right_delta_ = 0;
+    if (right_wheel_encoder_counts_ >= previous_right_normalized) {
+        right_delta_ = static_cast<uint32_t>(right_wheel_encoder_counts_) - previous_right_normalized; // no overflow, normal increment
+    } else {
+        right_delta_ = static_cast<uint32_t>(right_wheel_encoder_counts_ + ENCODER_MAX) - previous_right_normalized; // overflow occurred
+    }
+
+    RCLCPP_INFO(logger_, "Left Wheel: %d, previous: %d, Delta: %u", left_wheel_encoder_counts_ ,previous_left_encoder_counts_, left_delta_);
+    RCLCPP_INFO(logger_, "Right Wheel: %d, previous: %d, Delta: %u", right_wheel_encoder_counts_, previous_right_encoder_counts_, right_delta_);
+
+    previous_left_encoder_counts_ += left_delta_; // keep full count
+    previous_right_encoder_counts_ += right_delta_; // keep full count
+
+
+    double left_wheel_difference = static_cast<double>(left_delta_);
+    double right_wheel_difference = static_cast<double>(right_delta_);
+
+    double tick_to_distance_ = (72 * 3.14159) / 508.8;  // in mm
+    double left_distance = left_wheel_difference * tick_to_distance_;
+    double right_distance = right_wheel_difference * tick_to_distance_;  // in mm
+
+    distance_ = (left_distance + right_distance) / 2.0;
+    angle_ = (right_distance - left_distance)/ 2.0;
+
+    // Update odometry
+    current_pose_theta_ += (2 * angle_) / (wheelbase_ * 1000);
+    current_pose_x_ += distance_ * cos(current_pose_theta_) / 1000; // convert mm to meters
+    current_pose_y_ += distance_ * sin(current_pose_theta_) / 1000; // convert mm to meters
+
+    //RCLCPP_INFO(logger_, "Current Pose x: %f, y: %f, theta: %f", current_pose_x_, current_pose_y_, current_pose_theta_);
+
+    // write pose state interfaces
+    hw_states_position_[0] = current_pose_x_; // left_wheel_joint position
+    hw_states_position_[1] = current_pose_y_; // right_wheel_joint position
+
+
+    // for robot_simple_controller, listens to joint 3 and 4 for odometry
+    hw_states_position_[3] = current_pose_x_; // left_wheel_joint position
+    hw_states_position_[4] = current_pose_y_; // right_wheel_joint position
+    //hw_states_position_[5] = 0.0f; // right_wheel_joint position
+
+    // simple controller expects velocity in joints 3 and 4
     hw_states_velocity_[3] = current_pose_x_; // left_wheel_joint position
     hw_states_velocity_[4] = current_pose_y_; // right_wheel_joint position
     //hw_states_velocity_[5] = 0.0f; // right_wheel_joint position

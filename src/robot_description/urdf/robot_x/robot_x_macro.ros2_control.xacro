@@ -105,6 +105,24 @@
         <state_interface name="capacity"/>
       </sensor>
 
+      <!-- Side brush -->
+      <gpio name="${prefix}side_brush">
+        <state_interface name="state"/>
+        <command_interface name="state"/>
+      </gpio>
+
+      <!-- Vacuum -->
+      <gpio name="${prefix}vacuum">
+        <command_interface name="state"/>
+        <state_interface name="state"/>
+      </gpio>
+
+      <!-- Main brush -->
+      <gpio name="${prefix}motors">
+        <command_interface name="state"/>
+        <state_interface name="state"/>
+      </gpio>
+  
     </ros2_control>
 
     <xacro:if value="$(arg sim_gazebo_classic)">
