@@ -27,11 +27,6 @@
 #include "rclcpp_lifecycle/state.hpp"
 #include <rclcpp/rclcpp.hpp>
 
-#include <boost/asio.hpp>
-#include <boost/asio/serial_port.hpp>
-#include <boost/circular_buffer.hpp>
-
-
 namespace robot_hardware_interface
 {
 class RobotHardwareInterface : public hardware_interface::SystemInterface
@@ -66,11 +61,6 @@ public:
     const rclcpp::Time & time, const rclcpp::Duration & period) override;
   
 private:
-
-  // Big-endian helpers for converting data
-  static int16_t be16(const uint8_t* p); // Function declaration (signature)
-  static uint16_t ube16(const uint8_t* p); // Function declaration (signature)
-  
   // Hardware state and command vectors
   std::vector<double> hw_commands_;
   std::vector<double> hw_states_position_;
@@ -86,44 +76,27 @@ private:
   // Joint names
   std::vector<std::string> joint_names_;
 
-  // Motors states and commands
-  std::vector<double> gpio_commands_;
-  std::vector<double> gpio_states_;
-
   // Wheelbase parameter
   double wheelbase_;
-
 
   rclcpp::Logger logger_{rclcpp::get_logger("HardwareInterface")};
   
   // File descriptor for serial communication
-  int serial_fd_; 
-  boost::asio::io_service io_service_;  // Boost IO service for serial communication
-  boost::asio::serial_port ser{io_service_};  // Serial port object
-
-  // Boost circular buffer for serial communication
-  boost::circular_buffer<uint8_t> serial_buffer_{2048};
+  int serial_fd_;  
 
   //Odometry
   double current_pose_x_;
   double current_pose_y_;
   double current_pose_theta_;
 
-  double theta_left_;
-  double theta_right_;
-
   // Last sent velocity and radius to avoid redundant commands
-  double last_vl_;
-  double last_vr_;
+  int16_t last_velocity_;
+  int16_t last_radius_;
   double last_clean_mode_;
-
-  uint8_t last_motors_cmd_[4]; // Store last sent motors command to avoid redundant writes
   
   double distance_;                // Distance sensor reading (in meters, for example)
   double angle_;                   // Angle sensor reading (in radians or degrees)
 
-  uint32_t previous_left_encoder_counts_; // Store previous left encoder counts
-  uint32_t previous_right_encoder_counts_; // Store previous right encoder counts
 };
 
 }  // namespace robot_hardware_interface
