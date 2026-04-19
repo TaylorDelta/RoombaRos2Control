@@ -21,7 +21,7 @@
 
 controller_manager:
   ros__parameters:
-    update_rate: 50  # Hz
+    update_rate: 10  # Hz
 
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
@@ -35,25 +35,24 @@ controller_manager:
     joint_trajectory_controller:              # delete entry if controller is not applicable
       type: joint_trajectory_controller/JointTrajectoryController
 
+    robot_simple_controller:              # delete entry if controller is not applicable
+      type: robot_simple_controller/RobotSimpleController
+
+    # add diff_drive_controller if applicable
     diff_drive_controller:
       type: diff_drive_controller/DiffDriveController
 
-    gpio_command_controller:
-        type: gpio_controllers/GpioCommandController
 
-
-diff_drive_controller:
+diff_drive_controller:                  # delete entry if controller is not applicable
   ros__parameters:
     left_wheel_names: ["left_wheel_joint"]
     right_wheel_names: ["right_wheel_joint"]
-    wheel_separation: 0.235
-    wheel_radius: 0.036
-    command_timeout: 0.5
+    wheel_separation: 0.235  # meters
+    wheel_radius: 1.0      # meters
+    command_timeout: 2     # seconds
     velocity_rolling_window_size: 2
-    position_feedback: true
-    open_loop: false
-    left_wheel_radius_multiplier: 1.0
-    right_wheel_radius_multiplier: 0.977
+    position_feedback: false   # default
+    open_loop: true          # default
 
 forward_position_controller:                  # delete entry if controller is not applicable
   ros__parameters:
@@ -70,43 +69,13 @@ forward_velocity_controller:                  # delete entry if controller is no
 
     interface_name: position
 
-gpio_command_controller:
+robot_simple_controller:
   ros__parameters:
-    type: gpio_controllers/GpioCommandController
-
-    gpios:
-      - main_brush
-      - side_brush
-      - vacuum
-      - mode
-
-    command_interfaces:
-      main_brush:
-        - interfaces:
-          - duty_cycle
-      side_brush:
-        - interfaces:
-          - duty_cycle
-      vacuum:
-        - interfaces:
-          - duty_cycle
-      mode:
-        - interfaces:
-          - value
-
-    state_interfaces:
-      main_brush:
-        - interfaces:
-          - duty_cycle
-      side_brush:
-        - interfaces:
-          - duty_cycle
-      vacuum:
-        - interfaces:
-          - duty_cycle
-      mode:
-        - interfaces:
-          - value
+    joints:
+      - linear_velocity_joint
+      - angular_velocity_joint
+      - clean_mode_joint   # <-- your custom interface
+    interface_name: velocity
 
 
 joint_trajectory_controller:                  # delete entry if controller is not applicable
