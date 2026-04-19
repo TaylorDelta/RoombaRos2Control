@@ -1,6 +1,6 @@
 # Roomba Hardware Interface and ROS2 Controller
 
-This project implements a ROS2 hardware interface and controller for the iRobot® Roomba® using the Serial Command Interface (SCI) specification. It provides a seamless way to control Roomba's movement via the Diff Drive Controller in ROS2. Also a webcontrol feature is implemented.
+This project implements a ROS2 hardware interface and controller for the iRobot® Roomba® using the Serial Command Interface (SCI) specification. It provides a seamless way to control Roomba's movement via the Diff Drive Controller in ROS2.
 Make sure to use the right branch for your version. Currently available: 500er and 600er.
 
 ## Features
@@ -63,23 +63,21 @@ ros2 topic pub /diff_drive_controller/cmd_vel geometry_msgs/msg/TwistStamped "{h
 ```
 This results in the Roomba driving a circle with diameter of 1m at a speed of 100mm/s
 
-## Using Webcontrol with Raspberry Pi
+## Foxglove (Helpfull Webcontrol)
+
+Make sure Foxglove Bridge is installed in your ROS2 workspace:
 
 ```md
-ros2 launch rosbridge_server rosbridge_websocket_launch.xml
+sudo apt install ros-${ROS_DISTRO}-foxglove-bridge
+```
+Start the ROS2 ↔ Foxglove WebSocket bridge
+```md
+ros2 launch foxglove_bridge foxglove_bridge_launch.xml port:=8765
 ```
 
+Foxglove needs geometry_msgs/msg/Twist, the controller wants geometry_msgs/msg/TwistStamped, so twist_bridge creates /cmd_vel_fg without stamped
 ```md
-cd roomba_web
-```
-
-```md
-python3 -m http.server 8000
-```
-
-Open on a device with internet: 
-```md
-http://ip_adress_of_raspberry:8000/
+ros2 run twist_bridge twist_to_stamped
 ```
 
 ## Troubleshooting
