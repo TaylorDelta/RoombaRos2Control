@@ -26,6 +26,11 @@
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "rclcpp/rclcpp.hpp"
 
+#include <boost/asio.hpp>
+#include <boost/asio/serial_port.hpp>
+
+using boost::asio::serial_port;
+
 namespace robot_hardware_interface
 {
   hardware_interface::CallbackReturn RobotHardwareInterface::on_init(
@@ -43,23 +48,28 @@ namespace robot_hardware_interface
       return CallbackReturn::ERROR;
     }
 
-    // Resize vectors to number of joints
-    hw_states_position_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
-    hw_states_velocity_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
-    hw_commands_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
+    // Resize vectors to number of joints and set them to 0.0
+    hw_states_position_.resize(info_.joints.size(), 0.0);
+    hw_states_velocity_.resize(info_.joints.size(), 0.0);
+    hw_commands_.resize(info_.joints.size(), 0.0);
 
     // Resize joint limit vectors
-    hw_max_position_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
-    hw_min_position_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
+    hw_max_position_.resize(info_.joints.size(), 0.0);
+    hw_min_position_.resize(info_.joints.size(), 0.0);
 
     // Resize sensor state vector
-    hw_sensor_states_.resize(info_.sensors[0].state_interfaces.size(), std::numeric_limits<double>::quiet_NaN());
+    hw_sensor_states_.resize(info_.sensors[0].state_interfaces.size(), 0.0);
 
     // Resize joint names vector
     joint_names_.resize(info_.joints.size());
 
+    // GPIO states and commands
+    gpio_commands_.resize(info_.gpios.size(), 0.0);
+    gpio_states_.resize(info_.gpios.size(), 0.0);
+
     // Get wheelbase parameter from URDF
     wheelbase_ = std::stod(info_.hardware_parameters["wheelbase"]);
+    RCLCPP_INFO(logger_, "wheelbase: %f", wheelbase_);
 
     // read min and max from command interfaces
     int idx = 0;
@@ -75,30 +85,55 @@ namespace robot_hardware_interface
       idx++;
     }
 
+    int idx_gpio = 0;
+    for (const auto &gpio : info_.gpios)
+    {
+      for (const auto &command_interface : gpio.command_interfaces)
+      {
+        RCLCPP_INFO(logger_, "GPIO %s: command interface %s", gpio.name.c_str(), command_interface.name.c_str());
+      }
+      for (const auto &state_interface : gpio.state_interfaces)
+      {
+        RCLCPP_INFO(logger_, "GPIO %s: state interface %s", gpio.name.c_str(), state_interface.name.c_str());
+      }
+      idx_gpio++;
+    }
 
-    hw_commands_[0] = 0.0; // left_wheel_joint velocity
-    hw_commands_[1] = 0.0; // right_wheel_joint velocity
-    hw_commands_[2] = 6.0; // clean mode
+    // hw_commands_[0] = 0.0; // left_wheel_joint velocity
+    // hw_commands_[1] = 0.0; // right_wheel_joint velocity
+    // hw_commands_[2] = 0.0; // clean mode
 
-    hw_states_position_[0] = 0.0; // left_wheel_joint position
-    hw_states_position_[1] = 0.0; // right_wheel_joint position
-    hw_states_position_[2] = 6.0; // clean mode
-    hw_states_position_[3] = 0.0; // left_wheel_joint velocity
-    hw_states_position_[4] = 0.0; // right_wheel_joint velocity
+    // gpio_commands_[0] = 0.0; // side brush
+    // gpio_commands_[1] = 0.0; // vacuum
+    // gpio_commands_[2] = 0.0; // main brush
 
-    hw_states_velocity_[0] = 0.0; // left_wheel_joint position  
-    hw_states_velocity_[1] = 0.0; // right_wheel_joint position
-    hw_states_velocity_[2] = 6.0; // clean mode
-    hw_states_velocity_[3] = 0.0; // left_wheel_joint velocity
-    hw_states_velocity_[4] = 0.0; // right_wheel_joint velocity
+    // hw_states_position_[0] = 0.0; // left_wheel_joint position
+    // hw_states_position_[1] = 0.0; // right_wheel_joint position
+    // hw_states_position_[2] = 0.0; // clean mode
+    // hw_states_position_[3] = 0.0; // left_wheel_joint velocity
+    // hw_states_position_[4] = 0.0; // right_wheel_joint velocity
+
+    // hw_states_velocity_[0] = 0.0; // left_wheel_joint position
+    // hw_states_velocity_[1] = 0.0; // right_wheel_joint position
+    // hw_states_velocity_[2] = 0.0; // clean mode
+    // hw_states_velocity_[3] = 0.0; // left_wheel_joint velocity
+    // hw_states_velocity_[4] = 0.0; // right_wheel_joint velocity
 
     // Initialize serial connection
     serial_fd_ = -1;
 
+    // Intialize serial buffer
+    serial_buffer_.resize(1024, 0); // Adjust size as needed
+
     // Initialize state variables
-    last_velocity_ = 0;
-    last_radius_ = 0;
-    last_clean_mode_ = 6.0;
+    last_vl_ = 0;
+    last_vr_ = 0;
+    last_clean_mode_ = 0.0;
+
+    last_motors_cmd_[0] = 144;
+    last_motors_cmd_[1] = 0;
+    last_motors_cmd_[2] = 0;
+    last_motors_cmd_[3] = 0;
 
     // Odometry
     current_pose_x_ = 0.0;
@@ -117,196 +152,34 @@ namespace robot_hardware_interface
     // be sure which HW states can be read
     RCLCPP_INFO(logger_, "Configuring...");
     // ============================
-    
-    // Open serial port
-    serial_fd_ = ::open("/dev/ttyUSB0", O_RDWR | O_NOCTTY | O_NONBLOCK);
-    if (serial_fd_ < 0)
-    {
-      RCLCPP_INFO(logger_, "Failed to open serial port /dev/ttyUSB0, trying /dev/ttyUSB1");
-      serial_fd_ = ::open("/dev/ttyUSB1", O_RDWR | O_NOCTTY | O_NONBLOCK);
-      if (serial_fd_ < 0)
-      {
-        RCLCPP_ERROR(logger_, "Failed to open serial port /dev/ttyUSB0 and /dev/ttyUSB1");
-        RCLCPP_ERROR(logger_, "List all connected serial devices with 'ls /dev/ttyUSB*' and check permissions.");
-        return hardware_interface::CallbackReturn::ERROR;
-      }
-    }
 
-    // Configure serial port
-    struct termios tty;
-    memset(&tty, 0, sizeof tty);
+    static constexpr const char *SERIAL_PORT = "/dev/roomba"; // /dev/roomba on my raspi, on linux it might be /dev/ttyUSB0 or similar, on Windows COM3 or similar
+    static constexpr int BAUD_RATE = 115200;
 
-    // Get current serial port settings
-    if (tcgetattr(serial_fd_, &tty) != 0)
-    {
-      RCLCPP_ERROR(logger_, "tcgetattr() failed");
-      return hardware_interface::CallbackReturn::ERROR;
-    }
-
-    // Set Baud Rate to 115200
-    cfsetospeed(&tty, B115200);
-    cfsetispeed(&tty, B115200);
-
-    // 8N1
-    tty.c_cflag &= ~PARENB;
-    tty.c_cflag &= ~CSTOPB;
-    tty.c_cflag &= ~CSIZE;
-    tty.c_cflag |= CS8;
-
-    tty.c_cflag |= CREAD | CLOCAL;
-    tty.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
-    tty.c_iflag &= ~(IXON | IXOFF | IXANY);
-    tty.c_oflag &= ~OPOST;
-
-    if (tcsetattr(serial_fd_, TCSANOW, &tty) != 0)
-    {
-      RCLCPP_ERROR(logger_, "tcsetattr() failed");
-    }
+    // Initalize serial
+    ser.open(SERIAL_PORT);
+    ser.set_option(serial_port::baud_rate(BAUD_RATE));
+    ser.set_option(serial_port::character_size(8));
+    ser.set_option(serial_port::parity(serial_port::parity::none));
+    ser.set_option(serial_port::stop_bits(serial_port::stop_bits::one));
+    ser.set_option(serial_port::flow_control(serial_port::flow_control::none));
 
     // Send Roomba startup commands
-    uint8_t start_cmd = 128;
-    if (::write(serial_fd_, &start_cmd, 1) != 1)
-    {
-      RCLCPP_ERROR(logger_, "Failed to send START command (128)");
-    }
-
-    // Set SCI to FULL mode
-    uint8_t full_cmd = 132;
-    if (::write(serial_fd_, &full_cmd, 1) != 1)
-    {
-      RCLCPP_ERROR(logger_, "Failed to send FULL MODE command (132)");
-    }
-
-    /*
-    // ---- Read Roomba Sensor Group 0 (26 bytes) ----
-    uint8_t sensor_cmd[2] = {142, 0};   // 142 = Sensor, 0 = Group 0 (26 bytes)
-
-    if (::write(serial_fd_, sensor_cmd, 2) != 2) {
-        RCLCPP_ERROR(logger_, "Failed to request sensor group 0 (142,0)");
-        return hardware_interface::CallbackReturn::ERROR;
-    }
-
-    usleep(10000); // give Roomba time to respond
-
-    uint8_t response[26];
-    ssize_t bytes_read = ::read(serial_fd_, response, 26);  // Use ssize_t instead of int
-
-    RCLCPP_INFO(logger_,"Sensor Group 0 bytes read: %ld", bytes_read);
-
-    if (bytes_read < 0) {
-        RCLCPP_ERROR(logger_, "read() failed while reading sensor group 3");
-        return hardware_interface::CallbackReturn::ERROR;
-    }
-
-    std::stringstream ss;
-        for (int i = 0; i < bytes_read; i++) {
-            ss << std::hex << std::uppercase
-            << "0x" << static_cast<int>(response[i]);
-        if (i < bytes_read - 1) ss << " ";
-    }
-
-    RCLCPP_INFO(logger_, "Sensor Group 0 data: %s", ss.str().c_str());
-
-
-    // Parse the sensor data (convert to double where needed)
-    uint8_t bumps_and_wheeldrops = response[0];
-    hw_sensor_states_[0] = static_cast<double>(bumps_and_wheeldrops & 1);  // Bit 0: Bump Right
-    hw_sensor_states_[1] = static_cast<double>((bumps_and_wheeldrops >> 1) & 1);  // Bit 1: Bump Left
-    hw_sensor_states_[2] = static_cast<double>((bumps_and_wheeldrops >> 2) & 1);  // Bit 2: Wheel Drop Right
-    hw_sensor_states_[3] = static_cast<double>((bumps_and_wheeldrops >> 3) & 1);  // Bit 3: Wheel Drop Left
-    hw_sensor_states_[4] = static_cast<double>((bumps_and_wheeldrops >> 4) & 1);  // Bit 4: Wheel Drop Caster
-    hw_sensor_states_[5] = static_cast<double>(response[1]);  // 1 byte, wall sensor
-    hw_sensor_states_[6] = static_cast<double>(response[2]);  // 1 byte, left cliff sensor
-    hw_sensor_states_[7] = static_cast<double>(response[3]);  // 1 byte, front left cliff sensor
-    hw_sensor_states_[8] = static_cast<double>(response[4]);  // 1 byte, front right cliff sensor
-    hw_sensor_states_[9] = static_cast<double>(response[5]);  // 1 byte, right cliff sensor
-    hw_sensor_states_[10] = static_cast<double>(response[6]);  // 1 byte, virtual wall sensor
-    uint8_t motor_overcurrents = response[7];
-    hw_sensor_states_[11] = static_cast<double>(motor_overcurrents & 1);  // Bit 0: Side Brush
-    hw_sensor_states_[12] = static_cast<double>((motor_overcurrents >> 1) & 1);  // Bit 1: Vacuum
-    hw_sensor_states_[13] = static_cast<double>((motor_overcurrents >> 2) & 1);  // Bit 2: Main Brush
-    hw_sensor_states_[14] = static_cast<double>((motor_overcurrents >> 3) & 1);  // Bit 3: Drive Right
-    hw_sensor_states_[15] = static_cast<double>((motor_overcurrents >> 4) & 1);  // Bit 4: Drive Left
-    hw_sensor_states_[16] = static_cast<double>(response[8]);  // 1 byte, dirt detector left
-    hw_sensor_states_[17] = static_cast<double>(response[9]);  // 1 byte, dirt detector right
-    hw_sensor_states_[18] = static_cast<double>(response[10]);  // 1 byte, remote control command
-    uint8_t buttons = response[11];
-    hw_sensor_states_[19] = static_cast<double>(buttons & 1);        // Bit 0: Max
-    hw_sensor_states_[20] = static_cast<double>((buttons >> 1) & 1); // Bit 1: Clean
-    hw_sensor_states_[21] = static_cast<double>((buttons >> 2) & 1); // Bit 2: Spot 
-    hw_sensor_states_[22] = static_cast<double>((buttons >> 3) & 1); // Bit 3: Power
-    distance_ = static_cast<double>((static_cast<int16_t>(response[12] << 8 | response[13])));  // 2 bytes, signed distance (mm)
-    angle_ = static_cast<double>((static_cast<int16_t>(response[14] << 8 | response[15])));  // 2 bytes, signed angle (mm)
-    hw_sensor_states_[23] = static_cast<double>(response[16]);  // 1 byte, charging state
-    hw_sensor_states_[24] = static_cast<double>((static_cast<uint16_t>(response[17]) << 8) | response[18]);  // 2 bytes, unsigned voltage (mV)
-    hw_sensor_states_[25] = static_cast<double>((static_cast<int16_t>(response[19] << 8) | response[20]));  // 2 bytes, signed current (mA)
-    hw_sensor_states_[26] = static_cast<double>(response[21]);  // 1 byte, temperature (°C)
-    hw_sensor_states_[27] = static_cast<double>((static_cast<uint16_t>(response[22]) << 8) | response[23]);  // 2 bytes, unsigned charge (mAh)
-    hw_sensor_states_[28] = static_cast<double>((static_cast<uint16_t>(response[24]) << 8) | response[25]);  // 2 bytes, unsigned capacity (mAh)
-
-    RCLCPP_INFO(logger_, "Bumps and Wheeldrops:");
-    RCLCPP_INFO(logger_, "  Bump Left: %f", hw_sensor_states_[1]);
-    RCLCPP_INFO(logger_, "  Bump Right: %f", hw_sensor_states_[2]);
-    RCLCPP_INFO(logger_, "  Wheel Drop Left: %f", hw_sensor_states_[3]);
-    RCLCPP_INFO(logger_, "  Wheel Drop Right: %f", hw_sensor_states_[4]);
-    RCLCPP_INFO(logger_, "  Wheel Drop Caster: %f", hw_sensor_states_[5]);
-    RCLCPP_INFO(logger_, "Wall Sensor: %f", hw_sensor_states_[6]);
-    RCLCPP_INFO(logger_, "Cliff Sensors:");
-    RCLCPP_INFO(logger_, "  Cliff Left: %f", hw_sensor_states_[7]);
-    RCLCPP_INFO(logger_, "  Cliff Front Left: %f", hw_sensor_states_[8]);
-    RCLCPP_INFO(logger_, "  Cliff Front Right: %f", hw_sensor_states_[9]);
-    RCLCPP_INFO(logger_, "  Cliff Right: %f", hw_sensor_states_[10]);
-    RCLCPP_INFO(logger_, "Virtual Wall: %f", hw_sensor_states_[11]);
-    RCLCPP_INFO(logger_, "Motor Overcurrents:");
-    RCLCPP_INFO(logger_, "  Side Brush: %f", hw_sensor_states_[12]);
-    RCLCPP_INFO(logger_, "  Vacuum: %f", hw_sensor_states_[13]);
-    RCLCPP_INFO(logger_, "  Main Brush: %f", hw_sensor_states_[14]);
-    RCLCPP_INFO(logger_, "  Drive Right: %f", hw_sensor_states_[15]);
-    RCLCPP_INFO(logger_, "  Drive Left: %f", hw_sensor_states_[16]);
-    RCLCPP_INFO(logger_, "Dirt Detectors:");
-    RCLCPP_INFO(logger_, "  Dirt Left: %f", hw_sensor_states_[17]);
-    RCLCPP_INFO(logger_, "  Dirt Right: %f", hw_sensor_states_[18]);
-    RCLCPP_INFO(logger_, "Remote Control Command: %f", hw_sensor_states_[19]);
-    RCLCPP_INFO(logger_, "Button Max: %f", hw_sensor_states_[20]);
-    RCLCPP_INFO(logger_, "Button Clean: %f", hw_sensor_states_[21]);
-    RCLCPP_INFO(logger_, "Button Spot: %f", hw_sensor_states_[22]);
-    RCLCPP_INFO(logger_, "Button Power: %f", hw_sensor_states_[23]);
-    RCLCPP_INFO(logger_, "Distance Traveled: %f meters", distance_);
-    RCLCPP_INFO(logger_, "Angle Turned: %f", angle_);
-    RCLCPP_INFO(logger_, "Charging State: %f", hw_sensor_states_[21]);
-    RCLCPP_INFO(logger_, "Battery Information:");
-    RCLCPP_INFO(logger_, "  Voltage: %f V", hw_sensor_states_[24]);
-    RCLCPP_INFO(logger_, "  Current: %f A", hw_sensor_states_[25]);
-    RCLCPP_INFO(logger_, "  Temperature: %f °C", hw_sensor_states_[26]);
-    RCLCPP_INFO(logger_, "  Charge: %f mAh", hw_sensor_states_[27]);
-    RCLCPP_INFO(logger_, "  Capacity: %f mAh", hw_sensor_states_[28]);
-    RCLCPP_INFO(logger_, "Roomba placed in FULL mode");
-    */
-   
-    // ----------
-    // Ask sensor data to empty buffers
-    uint8_t sensor_cmd[2] = {142, 2}; // 142 = Sensor, 1 = Group 1 (10 bytes)
-
-    if (::write(serial_fd_, sensor_cmd, 2) != 2)
-    {
-      RCLCPP_INFO(logger_, "Empty Buffer (142,2)");
-      // return hardware_interface::return_type::ERROR;
-    }
-
-    // ----------
+    boost::asio::write(ser, boost::asio::buffer("\x80", 1));
 
     // Odometry
     current_pose_x_ = 0.0;
     current_pose_y_ = 0.0;
     current_pose_theta_ = 0.0;
 
-    hw_states_position_[0] = current_pose_x_; // left_wheel_joint position
-    hw_states_position_[1] = current_pose_y_; // right_wheel_joint position
-
     // Initialize state variables
-    last_velocity_ = 0;
-    last_radius_ = 0;
-    last_clean_mode_ = 6.0;
+    last_vl_ = 0;
+    last_vr_ = 0;
+    last_clean_mode_ = 0.0;
+
+    // Set SCI to FULL mode
+    boost::asio::write(ser, boost::asio::buffer("\x84", 1));
+    RCLCPP_INFO(logger_, "Roomba placed in FULL mode");
 
     RCLCPP_INFO(logger_, "Configuration successful.");
 
@@ -330,12 +203,25 @@ namespace robot_hardware_interface
           info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &hw_states_velocity_[i]));
     }
 
-    // export sensor state interface
+    // Export sensor state interface
     for (uint i = 0; i < info_.sensors[0].state_interfaces.size(); i++)
     {
       state_interfaces.emplace_back(
-        hardware_interface::StateInterface(
-          info_.sensors[0].name, info_.sensors[0].state_interfaces[i].name, &hw_sensor_states_[i]));
+          hardware_interface::StateInterface(
+              info_.sensors[0].name, info_.sensors[0].state_interfaces[i].name, &hw_sensor_states_[i]));
+    }
+
+    // Export GPIO state interfaces
+    for (size_t i = 0; i < info_.gpios.size(); ++i)
+    {
+      for (size_t j = 0; j < info_.gpios[i].state_interfaces.size(); ++j)
+      {
+        state_interfaces.emplace_back(
+            hardware_interface::StateInterface(
+                info_.gpios[i].name,                     // GPIO name
+                info_.gpios[i].state_interfaces[j].name, // Interface type for GPIO
+                &gpio_states_[i]));                      // Pointer to the GPIO state variable
+      }
     }
 
     return state_interfaces;
@@ -355,6 +241,19 @@ namespace robot_hardware_interface
           info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &hw_commands_[i]));
     }
 
+    // Export GPIO command interfaces
+    for (size_t i = 0; i < info_.gpios.size(); ++i)
+    {
+      for (size_t j = 0; j < info_.gpios[i].command_interfaces.size(); ++j)
+      {
+        command_interfaces.emplace_back(
+            hardware_interface::CommandInterface(
+                info_.gpios[i].name,                       // GPIO name
+                info_.gpios[i].command_interfaces[j].name, // Interface type for GPIO
+                &gpio_commands_[i]));                      // Pointer to the GPIO command variable
+      }
+    }
+
     return command_interfaces;
   }
 
@@ -364,8 +263,208 @@ namespace robot_hardware_interface
     // ============================
     // on_activate()
     // prepare the robot to receive commands
-    RCLCPP_INFO(logger_, "Activated...");
+    RCLCPP_INFO(logger_, "Activating...");
     // ============================
+
+    uint8_t stream_cmd[] = {149, 2, 43, 44};
+
+    const int STABILITY_THRESHOLD = 10; // Number of consecutive stable readings required to consider values stable
+    const int TIMEOUT_LIMIT = 100;      // Maximum number of iterations before timing out (to avoid infinite loop)
+
+    int stability_counter = 0;
+    int timeout_counter = 0;
+
+    // Initialize previous encoder counts to impossible values
+    previous_left_encoder_counts_ = 1234;
+    previous_right_encoder_counts_ = 1234;
+
+    uint16_t left_wheel_encoder_counts_ = 0;
+    uint16_t right_wheel_encoder_counts_ = 0;
+
+    while (timeout_counter < TIMEOUT_LIMIT)
+    {
+      boost::asio::write(ser, boost::asio::buffer(stream_cmd, 4));
+
+      // Read response from serial port (26 bytes expected)
+      uint8_t response_flush[4];
+      size_t total_read_2 = 0;
+
+      while (total_read_2 < 4)
+      {
+        boost::system::error_code ec;
+        size_t n = ser.read_some(boost::asio::buffer(response_flush + total_read_2, 4 - total_read_2), ec);
+        if (ec)
+        {
+          RCLCPP_ERROR(logger_, "Error reading from serial port: %s", ec.message().c_str());
+        }
+        total_read_2 += n;
+      }
+
+      // Combine the received bytes into encoder counts
+      left_wheel_encoder_counts_ = (static_cast<uint16_t>(response_flush[0]) << 8) |
+                                   static_cast<uint16_t>(response_flush[1]);
+
+      right_wheel_encoder_counts_ = (static_cast<uint16_t>(response_flush[2]) << 8) |
+                                    static_cast<uint16_t>(response_flush[3]);
+
+      // RCLCPP_INFO(logger_, "Left Encoder: %d, Right Encoder: %d, Stability Counter: %d",left_wheel_encoder_counts_, right_wheel_encoder_counts_, stability_counter);
+      //  Check if the encoder values have stabilized
+      if (left_wheel_encoder_counts_ == previous_left_encoder_counts_ &&
+          right_wheel_encoder_counts_ == previous_right_encoder_counts_)
+      {
+        stability_counter++; // Increment counter if the values haven't changed
+      }
+      else
+      {
+        stability_counter = 0; // Reset the counter if the values have changed
+      }
+
+      // If the values have been stable for the required number of iterations, break the loop
+      if (stability_counter >= STABILITY_THRESHOLD)
+      {
+        break;
+      }
+
+      // Store the current values for comparison in the next iteration
+      previous_left_encoder_counts_ = static_cast<int32_t>(left_wheel_encoder_counts_);
+      previous_right_encoder_counts_ = static_cast<int32_t>(right_wheel_encoder_counts_);
+
+      timeout_counter++; // Increment the timeout counter to track iteration limit
+
+      // Small delay to avoid overwhelming the serial communication
+      usleep(100000); // 10 ms
+    }
+
+    // Check if the loop timed out
+    if (timeout_counter >= TIMEOUT_LIMIT)
+    {
+      RCLCPP_WARN(logger_, "Timeout reached while waiting for stable encoder values.");
+    }
+
+    RCLCPP_INFO(logger_, "Encoder values have stabilized.");
+    RCLCPP_INFO(logger_, "Initial Left Wheel Encoder Counts: %d", left_wheel_encoder_counts_);
+    RCLCPP_INFO(logger_, "Initial Right Wheel Encoder Counts: %d", right_wheel_encoder_counts_);
+
+    // ---- Read Roomba Sensor Group 0 (26 bytes) ----
+
+    uint8_t stream_cmd_26[] = {142, 0};
+    boost::asio::write(ser, boost::asio::buffer(stream_cmd_26, 2));
+
+    usleep(10000); // wait for 100 ms to allow data to be sent
+
+    // Read response from serial port (26 bytes expected)
+    uint8_t response[26];
+    size_t total_read = 0;
+
+    while (total_read < 26)
+    {
+      boost::system::error_code ec;
+      size_t n = ser.read_some(boost::asio::buffer(response + total_read, 26 - total_read), ec);
+      if (ec)
+      {
+        RCLCPP_ERROR(logger_, "Error reading from serial port: %s", ec.message().c_str());
+      }
+      total_read += n;
+    }
+
+    // Parse the sensor data (convert to double where needed)
+    uint8_t bumps_and_wheeldrops = response[0];
+    hw_sensor_states_[0] = static_cast<double>(bumps_and_wheeldrops & 1);        // Bit 0: Bump Right
+    hw_sensor_states_[1] = static_cast<double>((bumps_and_wheeldrops >> 1) & 1); // Bit 1: Bump Left
+    hw_sensor_states_[2] = static_cast<double>((bumps_and_wheeldrops >> 2) & 1); // Bit 2: Wheel Drop Right
+    hw_sensor_states_[3] = static_cast<double>((bumps_and_wheeldrops >> 3) & 1); // Bit 3: Wheel Drop Left
+    hw_sensor_states_[4] = static_cast<double>(response[1]);                     // 1 byte, wall sensor
+    hw_sensor_states_[5] = static_cast<double>(response[2]);                     // 1 byte, left cliff sensor
+    hw_sensor_states_[6] = static_cast<double>(response[3]);                     // 1 byte, front left cliff sensor
+    hw_sensor_states_[7] = static_cast<double>(response[4]);                     // 1 byte, front right cliff sensor
+    hw_sensor_states_[8] = static_cast<double>(response[5]);                     // 1 byte, right cliff sensor
+    hw_sensor_states_[9] = static_cast<double>(response[6]);                     // 1 byte, virtual wall sensor
+
+    uint8_t motor_overcurrents = response[7];
+    hw_sensor_states_[10] = static_cast<double>(motor_overcurrents & 1);        // Bit 0: Side Brush
+    hw_sensor_states_[11] = 0.0;                                                // Bit 1: Vacuum
+    hw_sensor_states_[12] = static_cast<double>((motor_overcurrents >> 2) & 1); // Bit 2: Main Brush
+    hw_sensor_states_[13] = static_cast<double>((motor_overcurrents >> 3) & 1); // Bit 3: Drive Right
+    hw_sensor_states_[14] = static_cast<double>((motor_overcurrents >> 4) & 1); // Bit 4: Drive Left
+    hw_sensor_states_[15] = static_cast<double>(response[8]);                   // 1 byte, dirt detector left
+    // double unused1 = static_cast<double>(p[9]);  // 1 byte unused
+    hw_sensor_states_[16] = static_cast<double>(response[10]); // 1 byte, remote control command
+
+    uint8_t buttons = response[11];
+    hw_sensor_states_[17] = static_cast<double>(buttons & 1);        // Bit 0: Clean
+    hw_sensor_states_[18] = static_cast<double>((buttons >> 1) & 1); // Bit 1: Spot
+    hw_sensor_states_[19] = static_cast<double>((buttons >> 2) & 1); // Bit 2: Dock
+    hw_sensor_states_[20] = static_cast<double>((buttons >> 3) & 1); // Bit 3: Minute
+    hw_sensor_states_[21] = static_cast<double>((buttons >> 4) & 1); // Bit 4: Hour
+    hw_sensor_states_[22] = static_cast<double>((buttons >> 5) & 1); // Bit 5: Day
+    hw_sensor_states_[23] = static_cast<double>((buttons >> 6) & 1); // Bit 6: Schedule
+    hw_sensor_states_[24] = static_cast<double>((buttons >> 7) & 1); // Bit 7: Clock
+
+    hw_sensor_states_[25] = static_cast<double>((static_cast<int16_t>(response[12] << 8 | response[13])));  // 2 bytes, signed distance (mm)
+    hw_sensor_states_[26] = static_cast<double>((static_cast<int16_t>(response[14] << 8 | response[15])));  // 2 bytes, signed angle (mm)
+    hw_sensor_states_[27] = static_cast<double>(response[16]);                                              // 1 byte, charging state
+    hw_sensor_states_[28] = static_cast<double>((static_cast<uint16_t>(response[17] << 8) | response[18])); // 2 bytes, unsigned voltage (mV)
+    hw_sensor_states_[29] = static_cast<double>((static_cast<int16_t>(response[19] << 8) | response[20]));  // 2 bytes, signed current (mA)
+    hw_sensor_states_[30] = static_cast<double>(response[21]);                                              // 1 byte, temperature (°C)
+    hw_sensor_states_[31] = static_cast<double>((static_cast<uint16_t>(response[22] << 8) | response[23])); // 2 bytes, unsigned charge (mAh)
+    hw_sensor_states_[32] = static_cast<double>((static_cast<uint16_t>(response[24] << 8) | response[25])); // 2 bytes, unsigned capacity (mAh)
+    /*
+    RCLCPP_INFO(logger_, "Bumps and Wheeldrops:");
+    RCLCPP_INFO(logger_, "  Bump Right: %f", hw_sensor_states_[0]);
+    RCLCPP_INFO(logger_, "  Bump Left: %f", hw_sensor_states_[1]);
+    RCLCPP_INFO(logger_, "  Wheel Drop Right: %f", hw_sensor_states_[2]);
+    RCLCPP_INFO(logger_, "  Wheel Drop Left: %f", hw_sensor_states_[3]);
+
+    RCLCPP_INFO(logger_, "Wall Sensor: %f", hw_sensor_states_[4]);
+    RCLCPP_INFO(logger_, "Cliff Sensors:");
+    RCLCPP_INFO(logger_, "  Cliff Left: %f", hw_sensor_states_[5]);
+    RCLCPP_INFO(logger_, "  Cliff Front Left: %f", hw_sensor_states_[6]);
+    RCLCPP_INFO(logger_, "  Cliff Front Right: %f", hw_sensor_states_[7]);
+    RCLCPP_INFO(logger_, "  Cliff Right: %f", hw_sensor_states_[8]);
+    RCLCPP_INFO(logger_, "Virtual Wall: %f", hw_sensor_states_[9]);
+    RCLCPP_INFO(logger_, "Motor Overcurrents:");
+    RCLCPP_INFO(logger_, "  Side Brush: %f", hw_sensor_states_[10]);
+    RCLCPP_INFO(logger_, "  Vacuum: %f", hw_sensor_states_[11]);
+    RCLCPP_INFO(logger_, "  Main Brush: %f", hw_sensor_states_[12]);
+    RCLCPP_INFO(logger_, "  Drive Right: %f", hw_sensor_states_[13]);
+    RCLCPP_INFO(logger_, "  Drive Left: %f", hw_sensor_states_[14]);
+    RCLCPP_INFO(logger_, "  Dirt Detect: %f", hw_sensor_states_[15]);
+    RCLCPP_INFO(logger_, "Remote Control Command: %f", hw_sensor_states_[16]);
+    RCLCPP_INFO(logger_, "Buttons Clean: %f, Spot: %f, Dock: %f", hw_sensor_states_[17], hw_sensor_states_[18], hw_sensor_states_[19]);
+
+    RCLCPP_INFO(logger_, "Distance Traveled: %f meters", hw_sensor_states_[25]);
+    RCLCPP_INFO(logger_, "Angle Turned: %f", hw_sensor_states_[26]);
+    RCLCPP_INFO(logger_, "Charging State: %f", hw_sensor_states_[27]);
+    RCLCPP_INFO(logger_, "Battery Information:");
+    RCLCPP_INFO(logger_, "  Voltage: %f V", hw_sensor_states_[28]);
+    RCLCPP_INFO(logger_, "  Current: %f A", hw_sensor_states_[29]);
+    RCLCPP_INFO(logger_, "  Temperature: %f °C", hw_sensor_states_[30]);
+    RCLCPP_INFO(logger_, "  Charge: %f mAh", hw_sensor_states_[31]);
+    RCLCPP_INFO(logger_, "  Capacity: %f mAh", hw_sensor_states_[32]);
+    */
+    // Odometry
+    current_pose_x_ = 0.0;
+    current_pose_y_ = 0.0;
+    current_pose_theta_ = 0.0;
+
+    // hw_states_position_[0] = current_pose_x_; // left_wheel_joint position
+    // hw_states_position_[1] = current_pose_y_; // right_wheel_joint position
+    // hw_states_position_[2] = 6.0; // clean mode
+    // hw_states_position_[3] = current_pose_x_; // left_wheel_joint velocity
+    // hw_states_position_[4] = current_pose_y_; // right_wheel_joint velocity
+
+    // hw_states_velocity_[0] = 0.0; // left_wheel_joint position
+    // hw_states_velocity_[1] = 0.0; // right_wheel_joint position
+    // hw_states_velocity_[2] = 6.0; // clean mode
+    // hw_states_velocity_[3] = 0.0; // left_wheel_joint velocity
+    // hw_states_velocity_[4] = 0.0; // right_wheel_joint velocity
+
+    // Start the data stream
+    // [148] [Number of packets=1] [Packet ID 100]
+    uint8_t stream_cmd_2[] = {148, 1, 100};
+    boost::asio::write(ser, boost::asio::buffer(stream_cmd_2, 3));
+
+    RCLCPP_INFO(logger_, "Started Sensordata Stream");
 
     return CallbackReturn::SUCCESS;
   }
@@ -384,23 +483,22 @@ namespace robot_hardware_interface
         static_cast<uint8_t>((radius >> 8) & 0xFF),
         static_cast<uint8_t>(radius & 0xFF)};
 
-    if (::write(serial_fd_, drive_cmd, 5) != 5)
+    boost::system::error_code ec;
+
+    boost::asio::write(ser, boost::asio::buffer(drive_cmd, 5), ec);
+    if (ec)
     {
-      RCLCPP_ERROR(logger_, "Failed to send DRIVE command");
-    }
-    else
-    {
-      RCLCPP_INFO(logger_, "Sent STOP command to robot.");
+      RCLCPP_ERROR(logger_, "Failed to write drive_cmd during deactivate: %s", ec.message().c_str());
+      // Optional: handle recovery or just log
     }
 
-    // Set SCI to PASSIVE mode
-    uint8_t passive_mode = 128;
-    if (::write(serial_fd_, &passive_mode, 1) != 1)
+    boost::asio::write(ser, boost::asio::buffer("\x80", 1), ec);
+    if (ec)
     {
-      RCLCPP_ERROR(logger_, "Failed to send Start command (128)");
-      return hardware_interface::CallbackReturn::ERROR;
+      RCLCPP_ERROR(logger_, "Failed to write 0x80 during deactivate: %s", ec.message().c_str());
     }
 
+    // Everything done, safe to log
     RCLCPP_INFO(logger_, "Deactivated.");
 
     return CallbackReturn::SUCCESS;
@@ -410,12 +508,7 @@ namespace robot_hardware_interface
       const rclcpp_lifecycle::State & /*previous_state*/)
   {
     // Close serial port
-    if (serial_fd_ >= 0)
-    {
-      ::close(serial_fd_);
-      serial_fd_ = -1;
-      RCLCPP_INFO(logger_, "Serial port closed.");
-    }
+    ser.close();
 
     RCLCPP_INFO(logger_, "Cleaned up.");
 
@@ -426,184 +519,343 @@ namespace robot_hardware_interface
       const rclcpp_lifecycle::State & /*previous_state*/)
   {
     // Close serial port
-    if (serial_fd_ >= 0)
-    {
-      ::close(serial_fd_);
-      serial_fd_ = -1;
-      RCLCPP_INFO(logger_, "Serial port closed.");
-    }
+    ser.close();
 
     RCLCPP_INFO(logger_, "Shutdown complete.");
 
     return hardware_interface::CallbackReturn::SUCCESS;
   }
 
+  // Big-endian helper function definitions
+  int16_t RobotHardwareInterface::be16(const uint8_t *p)
+  {
+    return (int16_t)((p[0] << 8) | p[1]);
+  }
+
+  uint16_t RobotHardwareInterface::ube16(const uint8_t *p)
+  {
+    return (uint16_t)((p[0] << 8) | p[1]);
+  }
+
   hardware_interface::return_type RobotHardwareInterface::read(
       const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
-  { 
+  {
     // ============================
     // read()
     // read the current state from the robot hardware
     // ============================
 
-    uint8_t sensor_cmd[2] = {142, 2}; // 142 = Sensor, 2 = Group 2 (6 bytes)
+    uint16_t previous_left_normalized = previous_left_encoder_counts_ & 0xFFFF;   // normalize to 16 bits
+    uint16_t previous_right_normalized = previous_right_encoder_counts_ & 0xFFFF; // normalize to 16 bits
 
-    if (::write(serial_fd_, sensor_cmd, 2) != 2)
+    uint16_t left_wheel_encoder_counts_ = previous_left_normalized;
+    uint16_t right_wheel_encoder_counts_ = previous_right_normalized;
+
+    // Temporary read buffer from serial
+    uint8_t temp_buf[512];
+    boost::system::error_code ec;
+
+    // === Read serial data ===
+    size_t n = ser.read_some(boost::asio::buffer(temp_buf, sizeof(temp_buf)), ec);
+
+    if (ec)
     {
-      RCLCPP_ERROR(logger_, "Failed to request sensor group 0 (142,0)");
-      // return hardware_interface::return_type::ERROR;
+      if (ec == boost::asio::error::eof)
+      {
+        RCLCPP_ERROR(logger_, "Serial port disconnected");
+      }
+      else
+      {
+        RCLCPP_ERROR(logger_, "Serial read error: %s", ec.message().c_str());
+      }
+    }
+    else
+    {
+      // Append new bytes into circular buffer
+      for (size_t i = 0; i < n; ++i)
+      {
+        serial_buffer_.push_back(temp_buf[i]); // automatically overwrites oldest if full
+      }
     }
 
-    uint8_t response[6];
-    ssize_t bytes_read = ::read(serial_fd_, response, 6);  // Use ssize_t instead of int
+    // === Scan backwards for the newest valid packet ===
+    if (serial_buffer_.size() >= 84)
+    { // only scan if we have enough bytes
+      for (int i = (int)serial_buffer_.size() - 84; i >= 0; --i)
+      {
+        if (serial_buffer_[i] == 19 && serial_buffer_[i + 1] == 81 && serial_buffer_[i + 2] == 100)
+        {
+          // Copy packet to contiguous array
+          uint8_t pkt[84];
+          for (int k = 0; k < 84; ++k)
+          {
+            pkt[k] = serial_buffer_[i + k];
+          }
 
-    distance_ = static_cast<double>((static_cast<int16_t>(response[2] << 8 | response[3])));  // 2 bytes, signed distance (mm)
-    angle_ = static_cast<double>((static_cast<int16_t>(response[4] << 8 | response[5])));  // 2 bytes, signed angle (mm)
+          // Verify checksum
+          uint8_t checksum = 0;
+          for (int k = 0; k < 84; ++k)
+            checksum += pkt[k];
+          if ((checksum & 0xFF) != 0)
+            continue;
+
+          uint8_t *p = pkt + 3;
+
+          uint8_t bumps_and_wheeldrops = p[0];
+          hw_sensor_states_[0] = static_cast<double>(bumps_and_wheeldrops & 1);        // Bit 0: Bump Right
+          hw_sensor_states_[1] = static_cast<double>((bumps_and_wheeldrops >> 1) & 1); // Bit 1: Bump Left
+          hw_sensor_states_[2] = static_cast<double>((bumps_and_wheeldrops >> 2) & 1); // Bit 2: Wheel Drop Right
+          hw_sensor_states_[3] = static_cast<double>((bumps_and_wheeldrops >> 3) & 1); // Bit 3: Wheel Drop Left
+
+          hw_sensor_states_[4] = static_cast<double>(p[1]); // 1 byte, wall sensor
+          hw_sensor_states_[5] = static_cast<double>(p[2]); // 1 byte, left cliff sensor
+          hw_sensor_states_[6] = static_cast<double>(p[3]); // 1 byte, front left cliff sensor
+          hw_sensor_states_[7] = static_cast<double>(p[4]); // 1 byte, front right cliff sensor
+          hw_sensor_states_[8] = static_cast<double>(p[5]); // 1 byte, right cliff sensor
+          hw_sensor_states_[9] = static_cast<double>(p[6]); // 1 byte, virtual wall sensor
+
+          uint8_t motor_overcurrents = p[7];
+          hw_sensor_states_[10] = static_cast<double>(motor_overcurrents & 1);        // Bit 0: Side Brush
+          hw_sensor_states_[11] = 0.0;                                                // Bit 1: Vacuum, not provided in the stream, set to 0.0 for now
+          hw_sensor_states_[12] = static_cast<double>((motor_overcurrents >> 2) & 1); // Bit 2: Main Brush
+          hw_sensor_states_[13] = static_cast<double>((motor_overcurrents >> 3) & 1); // Bit 3: Drive Right
+          hw_sensor_states_[14] = static_cast<double>((motor_overcurrents >> 4) & 1); // Bit 4: Drive Left
+
+          hw_sensor_states_[15] = static_cast<double>(p[8]); // 1 byte, dirt detector left
+          //  == 1 Byte unused at p[9] ==
+          hw_sensor_states_[16] = static_cast<double>(p[10]); // 1 byte, remote control command
+
+          uint8_t buttons = p[11];
+          hw_sensor_states_[17] = static_cast<double>(buttons & 1);        // Bit 0: Clean
+          hw_sensor_states_[18] = static_cast<double>((buttons >> 1) & 1); // Bit 1: Spot
+          hw_sensor_states_[19] = static_cast<double>((buttons >> 2) & 1); // Bit 2: Dock
+          hw_sensor_states_[20] = static_cast<double>((buttons >> 3) & 1); // Bit 3: Minute
+          hw_sensor_states_[21] = static_cast<double>((buttons >> 4) & 1); // Bit 4: Hour
+          hw_sensor_states_[22] = static_cast<double>((buttons >> 5) & 1); // Bit 5: Day
+          hw_sensor_states_[23] = static_cast<double>((buttons >> 6) & 1); // Bit 6: Schedule
+          hw_sensor_states_[24] = static_cast<double>((buttons >> 7) & 1); // Bit 7: Clock
+
+          hw_sensor_states_[25] = static_cast<double>((static_cast<int16_t>(p[12] << 8 | p[13])));  // 2 bytes, signed distance (mm)
+          hw_sensor_states_[26] = static_cast<double>((static_cast<int16_t>(p[14] << 8 | p[15])));  // 2 bytes, signed angle (mm)
+          hw_sensor_states_[27] = static_cast<double>(p[16]);                                       // 1 byte, charging state
+          hw_sensor_states_[28] = static_cast<double>((static_cast<uint16_t>(p[17] << 8) | p[18])); // 2 bytes, unsigned voltage (mV)
+          hw_sensor_states_[29] = static_cast<double>((static_cast<int16_t>(p[19] << 8) | p[20]));  // 2 bytes, signed current (mA)
+          hw_sensor_states_[30] = static_cast<double>(p[21]);                                       // 1 byte, temperature (°C)
+          hw_sensor_states_[31] = static_cast<double>(be16(&p[22]));                                // 2 bytes, unsigned charge (mAh)
+          hw_sensor_states_[32] = static_cast<double>(be16(&p[24]));                                // 2 bytes, unsigned capacity (mAh)
+
+          hw_sensor_states_[33] = static_cast<double>(be16(&p[26])); // 2 byte, wall signal
+          hw_sensor_states_[34] = static_cast<double>(be16(&p[28])); // 2 byte, cliff left signal
+          hw_sensor_states_[35] = static_cast<double>(be16(&p[30])); // 2 byte, cliff front left signal
+          hw_sensor_states_[36] = static_cast<double>(be16(&p[32])); // 2 byte, cliff front right signal
+          hw_sensor_states_[37] = static_cast<double>(be16(&p[34])); // 2 byte, cliff right signal
+          //  == 1 Byte unused at p[36] ==
+          // == 2 Bytes unused at p[37] and p[38] ==
+          hw_sensor_states_[38] = static_cast<double>(p[39]); // 1 byte, charger available
+          hw_sensor_states_[39] = static_cast<double>(p[40]); // 1 byte, open interface mode
+          hw_sensor_states_[40] = static_cast<double>(p[41]); // 1 byte, song number
+          hw_sensor_states_[41] = static_cast<double>(p[42]); // 1 byte, song playing
+          hw_sensor_states_[42] = static_cast<double>(p[43]); // 1 byte, oi stream num packets
+
+          hw_sensor_states_[43] = static_cast<double>(be16(&p[44])); // 2 bytes, velocity
+          hw_sensor_states_[44] = static_cast<double>(be16(&p[46])); // 2 bytes, radius
+          hw_sensor_states_[45] = static_cast<double>(be16(&p[48])); // 2 bytes, velocity right
+          hw_sensor_states_[46] = static_cast<double>(be16(&p[50])); // 2 bytes, velocity left
+
+          left_wheel_encoder_counts_ = ube16(&p[52]);  // 2 bytes, encoder counts left
+          right_wheel_encoder_counts_ = ube16(&p[54]); // 2 bytes, encoder counts right
+
+          hw_sensor_states_[49] = static_cast<double>(p[56]);        // 1 byte, light bumper
+          hw_sensor_states_[50] = static_cast<double>(be16(&p[57])); // 2 byte, light bump left
+          hw_sensor_states_[51] = static_cast<double>(be16(&p[59])); // 2 byte, light bump front left
+          hw_sensor_states_[52] = static_cast<double>(be16(&p[61])); // 2 byte, light bump center left
+          hw_sensor_states_[53] = static_cast<double>(be16(&p[63])); // 2 byte, light bump center right
+          hw_sensor_states_[54] = static_cast<double>(be16(&p[65])); // 2 byte, light bump front right
+          hw_sensor_states_[55] = static_cast<double>(be16(&p[67])); // 2 byte, light bump right
+
+          hw_sensor_states_[56] = static_cast<double>(p[69]); // 1 byte, ir opcode left
+          hw_sensor_states_[57] = static_cast<double>(p[70]); // 1 byte, ir opcode right
+
+          hw_sensor_states_[58] = static_cast<double>(be16(&p[71])); // 2 bytes, left motor current
+          hw_sensor_states_[59] = static_cast<double>(be16(&p[73])); // 2 bytes, right motor current
+          hw_sensor_states_[60] = static_cast<double>(be16(&p[75])); // 2 bytes, main brush current
+          hw_sensor_states_[61] = static_cast<double>(be16(&p[77])); // 2 bytes, side brush current
+
+          hw_sensor_states_[62] = static_cast<double>(p[79]); // 1 byte, stasis
+
+          break; // Exit loop after processing the latest valid packet
+        }
+      }
+    }
+
+    // RCLCPP_INFO(logger_, "Left wheel drop: %f, Right wheel drop: %f", hw_sensor_states_[2], hw_sensor_states_[3]);
+    // RCLCPP_INFO(logger_, "Charge and Capacity: %f mAh, %f mAh", hw_sensor_states_[31], hw_sensor_states_[32]);
+
+    constexpr int32_t ENCODER_MAX = 1u << 16;
+
+    // Handle encoder wraparound by calculating the delta and adjusting if it exceeds half the max value
+    int32_t left_delta_ = static_cast<int32_t>(left_wheel_encoder_counts_ - previous_left_normalized);
+    if (left_delta_ > ENCODER_MAX / 2)
+    {
+      left_delta_ -= ENCODER_MAX;
+    }
+    else if (left_delta_ < -static_cast<int32_t>(ENCODER_MAX / 2))
+    {
+      left_delta_ += ENCODER_MAX;
+    }
+
+    // Handle encoder wraparound for right wheel
+    int32_t right_delta_ = static_cast<int32_t>(right_wheel_encoder_counts_ - previous_right_normalized);
+    if (right_delta_ > ENCODER_MAX / 2)
+    {
+      right_delta_ -= ENCODER_MAX;
+    }
+    else if (right_delta_ < -static_cast<int32_t>(ENCODER_MAX / 2))
+    {
+      right_delta_ += ENCODER_MAX;
+    }
+
+    // RCLCPP_INFO(logger_, "Left Wheel: %d, previous: %d, Delta: %d", left_wheel_encoder_counts_ ,previous_left_encoder_counts_, left_delta_);
+    // RCLCPP_INFO(logger_, "Right Wheel: %d, previous: %d, Delta: %d", right_wheel_encoder_counts_, previous_right_encoder_counts_, right_delta_);
+
+    previous_left_encoder_counts_ += left_delta_;   // keep full count
+    previous_right_encoder_counts_ += right_delta_; // keep full count
+
+    // calculate theta for each wheel
+    theta_left_ = (2 * M_PI * previous_left_encoder_counts_) / 508.8;   // in radians
+    theta_right_ = (2 * M_PI * previous_right_encoder_counts_) / 508.8; // in radians
+
+    double left_wheel_difference = static_cast<double>(left_delta_);
+    double right_wheel_difference = static_cast<double>(right_delta_);
+
+    double tick_to_distance_ = (72 * 3.14159) / 508.8; // in mm
+    double left_distance = left_wheel_difference * tick_to_distance_;
+    double right_distance = right_wheel_difference * tick_to_distance_; // in mm
+
+    distance_ = (left_distance + right_distance) / 2.0;
+    angle_ = (right_distance - left_distance) / 2.0;
 
     // Update odometry
-    current_pose_theta_ += (2 * angle_) / (wheelbase_ * 1000) * 3.14159; // times pi, there is an error
-    current_pose_x_ -= distance_ * cos(current_pose_theta_); // use negative distance to match coordinate frame
-    current_pose_y_ -= distance_ * sin(current_pose_theta_); //
+    current_pose_theta_ += (2 * angle_) / (wheelbase_ * 1000);
+    current_pose_x_ += distance_ * cos(current_pose_theta_) / 1000; // convert mm to meters
+    current_pose_y_ += distance_ * sin(current_pose_theta_) / 1000; // convert mm to meters
+
+    // RCLCPP_INFO(logger_, "Current Pose x: %f, y: %f, theta: %f", current_pose_x_, current_pose_y_, current_pose_theta_);
 
     // write pose state interfaces
-    hw_states_position_[0] = current_pose_x_; // left_wheel_joint position
-    hw_states_position_[1] = current_pose_y_; // right_wheel_joint position
+    hw_states_position_[0] = theta_left_;  // left_wheel_joint position
+    hw_states_position_[1] = theta_right_; // right_wheel_joint position
 
+    // Provide the full encoder counts as sensor states
+    hw_sensor_states_[47] = previous_left_encoder_counts_;  // 2 bytes, signed left encoder counts
+    hw_sensor_states_[48] = previous_right_encoder_counts_; // 2 bytes, signed right encoder counts
 
-    // for robot_simple_controller, listens to joint 3 and 4 for odometry
-    hw_states_position_[3] = current_pose_x_; // left_wheel_joint position
-    hw_states_position_[4] = current_pose_y_; // right_wheel_joint position
-    //hw_states_position_[5] = 0.0f; // right_wheel_joint position
-
-    hw_states_velocity_[3] = current_pose_x_; // left_wheel_joint position
-    hw_states_velocity_[4] = current_pose_y_; // right_wheel_joint position
-    //hw_states_velocity_[5] = 0.0f; // right_wheel_joint position
+    // Provide manually calculated odometry as sensor states for testing
+    hw_sensor_states_[63] = current_pose_x_;     // x position
+    hw_sensor_states_[64] = current_pose_y_;     // y position
+    hw_sensor_states_[65] = current_pose_theta_; // theta position
 
     return hardware_interface::return_type::OK;
   }
 
   hardware_interface::return_type RobotHardwareInterface::write(
       const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
-  { 
+  {
     // ============================
     // write()
     // write the current command to the robot hardware
     // ============================
 
-    // Only if clean_mode_ is a new value, send the appropriate command
-    // Modes: Power 133, Spot 134, Clean 135, Max 136
+    // ======================================
+    // Send GPIOs
+    // ======================================
+    uint8_t gpio_cmd_array[] = {
+        144,
+        static_cast<uint8_t>(static_cast<int>(gpio_commands_[0])), // Cast from float to int, then to uint8_t
+        static_cast<uint8_t>(static_cast<int>(gpio_commands_[1])),
+        static_cast<uint8_t>(static_cast<int>(gpio_commands_[2]))};
 
-    /*// works with ubuntu@ubuntu:~$ ros2 topic pub --once /robot/clean_mode std_msgs/msg/Int32 "{data: 2}"
-    publisher: beginning loop
-    publishing #1: std_msgs.msg.Int32(data=2)
-    but does not send the command yet
-   */
-    // clean_mode_ = hw_commands_[2]; // assuming the 3rd command interface is for clean_mode
-    // if (clean_mode_ != last_clean_mode_) {
-    //   uint8_t clean_cmd = 0;
-    //   switch (static_cast<int>(clean_mode_)) {
-    //     case 130:
-    //       clean_cmd = 130; // Control
-    //       break;
-    //     case 131:
-    //       clean_cmd = 131; // Safe
-    //       break;
-    //     case 132:
-    //       clean_cmd = 132; // Full
-    //       break;
-    //     case 133:
-    //       clean_cmd = 133; // Power
-    //       break;
-    //     case 134:
-    //       clean_cmd = 134; // Spot
-    //       break;
-    //     case 135:
-    //       clean_cmd = 135; // Clean
-    //       break;
-    //     case 136:
-    //       clean_cmd = 136; // Max
-    //       break;
+    if (memcmp(gpio_cmd_array, last_motors_cmd_, 4) != 0)
+    { 
+      // RCLCPP_INFO(logger_, "Sending GPIO command: %d %d %d", gpio_cmd_array[1], gpio_cmd_array[2], gpio_cmd_array[3]);
+      boost::asio::write(ser, boost::asio::buffer(gpio_cmd_array, 4));
+      memcpy(last_motors_cmd_, gpio_cmd_array, 4);
+    }
 
-    //     default:
-    //       RCLCPP_WARN(logger_, "Invalid clean mode: %f", clean_mode_);
-    //       clean_cmd = 0;
-    //       break;
-    //   }
-    //   if (clean_cmd != 0) {
+    // ======================================
+    // Send CLEAN MODE command
+    // ======================================
 
-    //     uint8_t full_cmd = 132;
-    //     if (::write(serial_fd_, &full_cmd, 1) != 1) {
-    //         RCLCPP_ERROR(logger_, "Failed to send FULL MODE command (132)");
-    //         return hardware_interface::return_type::ERROR;
-    //     }
-    //     usleep(10000); // give Roomba time to respond
-    //     if (::write(serial_fd_, &clean_cmd, 1) != 1) {
-    //       RCLCPP_ERROR(logger_, "Failed to send CLEAN MODE command: %d", clean_cmd);
-    //       return hardware_interface::return_type::ERROR;
-    //     } else {
-    //       RCLCPP_INFO(logger_, "Sent CLEAN MODE command: %d", clean_cmd);
-    //       last_clean_mode_ = clean_mode_;
-    //     }
-    //   }
-    // }
+    if (gpio_commands_[3] != last_clean_mode_)
+    {
+      const double raw_cmd = gpio_commands_[3];
+      
+      if (raw_cmd < 0 || raw_cmd > 255)
+      {
+        RCLCPP_WARN(logger_, "Invalid clean mode: %d", static_cast<int>(raw_cmd));
+      }
+      else
+      {
+        uint8_t clean_cmd = static_cast<uint8_t>(raw_cmd);
+
+        try
+        {
+          boost::asio::write(ser, boost::asio::buffer(&clean_cmd, 1));
+          RCLCPP_INFO(logger_, "Sent CLEAN MODE command: %u", clean_cmd);
+          last_clean_mode_ = raw_cmd;
+        }
+        catch (const boost::system::system_error &e)
+        {
+          RCLCPP_ERROR(logger_, "Serial write threw an exception: %s", e.what());
+        }
+      }
+    }
 
     // ======================================
     // Send DRIVE command
     // ======================================
 
-    double linear_velocity_ = (hw_commands_[1] + hw_commands_[0]) / 2.0 * 1000;                               // calculate velocity
-    double radius_ = ((hw_commands_[1] + hw_commands_[0]) / 2.0) * wheelbase_*1000 / (hw_commands_[1] - hw_commands_[0]); // calculate radius
+    const double vl = hw_commands_[0];
+    const double vr = hw_commands_[1];
 
-    // Convert to int16_t
-    int16_t velocity = static_cast<int16_t>(linear_velocity_); // mm/s
-    int16_t radius = static_cast<int16_t>(radius_);            // Control for turning radius
+    int16_t left_wheel_velocity_ = static_cast<int16_t>(
+        std::clamp(vl * 1000.0 * 0.036, -400.0, 400.0));
 
-    if (velocity != last_velocity_ || radius != last_radius_)
+    int16_t right_wheel_velocity_ = static_cast<int16_t>(
+        std::clamp(vr * 1000.0 * 0.036, -400.0, 400.0));
+
+    // For Info print
+    double velocity_ = (left_wheel_velocity_ + right_wheel_velocity_) / 2.0; // calculate velocity
+    double radius_ = 0.0;
+    if (left_wheel_velocity_ != right_wheel_velocity_)
     {
-      RCLCPP_INFO(logger_, "Velocity command: %d mm/s, Radius command: %d mm\n", velocity, radius);
-      RCLCPP_INFO(logger_, "HW Commands: 3: %f , 4: %f\n", hw_commands_[0], hw_commands_[1]);
-      // Check for velocity limits
-      if (velocity > 400)
-        velocity = 400;
-      if (velocity < -400)
-        velocity = -400;
+      radius_ = ((left_wheel_velocity_ + right_wheel_velocity_) / 2.0) * wheelbase_ / (left_wheel_velocity_ - right_wheel_velocity_);
+    }
 
-      uint8_t drive_cmd[5]; // Declare the drive_cmd array before the if-else block
+    uint8_t drive_cmd[5];
 
-      if (radius > 2000 || radius < -2000)
-      {
-        // Set radius to hex8000 if it's out of bounds
-        drive_cmd[0] = 137;                                          // Command identifier for DRIVE
-        drive_cmd[1] = static_cast<uint8_t>((velocity >> 8) & 0xFF); // High byte of velocity
-        drive_cmd[2] = static_cast<uint8_t>(velocity & 0xFF);        // Low byte of velocity
-        drive_cmd[3] = 0x80;                                         // High byte of radius
-        drive_cmd[4] = 0x00;                                         // Low byte of radius
-      }
-      else
-      {
-        // Use actual radius if it's within bounds
-        drive_cmd[0] = 137;                                          // Command identifier for DRIVE
-        drive_cmd[1] = static_cast<uint8_t>((velocity >> 8) & 0xFF); // High byte of velocity
-        drive_cmd[2] = static_cast<uint8_t>(velocity & 0xFF);        // Low byte of velocity
-        drive_cmd[3] = static_cast<uint8_t>((radius >> 8) & 0xFF);   // High byte of radius
-        drive_cmd[4] = static_cast<uint8_t>(radius & 0xFF);          // Low byte of radius
-      }
+    if (vl != last_vl_ || vr != last_vr_)
+    {
+      drive_cmd[0] = 145;                                                       // Command identifier for Drive Direct
+      drive_cmd[1] = static_cast<uint8_t>((right_wheel_velocity_ >> 8) & 0xFF); // High byte of velocity
+      drive_cmd[2] = static_cast<uint8_t>(right_wheel_velocity_ & 0xFF);        // Low byte of velocity
+      drive_cmd[3] = static_cast<uint8_t>((left_wheel_velocity_ >> 8) & 0xFF);  // High byte of radius
+      drive_cmd[4] = static_cast<uint8_t>(left_wheel_velocity_ & 0xFF);         // Low byte of radius
 
-      // Send the command via serial
-      if (::write(serial_fd_, drive_cmd, 5) != 5)
+      try
       {
-        RCLCPP_ERROR(logger_, "Failed to send DRIVE command");
-        return hardware_interface::return_type::ERROR;
+        boost::asio::write(ser, boost::asio::buffer(drive_cmd, 5));
+        RCLCPP_INFO(logger_, "Sent D cmd: vel=%.2f mm/s, r=%.2f mm, right=%.2f mm/s, left=%.2f mm/s",
+                    velocity_, radius_, vr, vl);
       }
-      else
+      catch (const boost::system::system_error &e)
       {
-        RCLCPP_INFO(logger_, "Sent DRIVE command: vel=%d mm/s, radius=%d mm",
-                    velocity, radius);
+        RCLCPP_ERROR(logger_, "Serial write threw an exception: %s", e.what());
       }
 
       // Update last sent values
-      last_velocity_ = velocity;
-      last_radius_ = radius;
+      last_vl_ = vl;
+      last_vr_ = vr;
     }
 
     return hardware_interface::return_type::OK;

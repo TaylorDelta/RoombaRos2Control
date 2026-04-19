@@ -46,65 +46,99 @@
         </command_interface>
         <state_interface name="position"/>
       </joint>
-
-      <joint name="${prefix}clean_mode_joint">
-        <command_interface name="velocity">
-          <param name="min">0</param>
-          <param name="max">7</param>
-        </command_interface>
-        <state_interface name="position"/>
-      </joint>
-
-      <joint name="${prefix}linear_velocity_joint">
-        <command_interface name="velocity">
-          <param name="min">-0.5</param>
-          <param name="max">0.5</param>
-        </command_interface>
-        <state_interface name="position"/>
-      </joint>  
-
-      <joint name="${prefix}angular_velocity_joint">
-        <command_interface name="velocity">
-          <param name="min">-1.0</param>
-          <param name="max">1.0</param>
-        </command_interface>
-        <state_interface name="position"/>
-      </joint>
       <!-- Joint definitions end -->
 
       <!-- Sensor definitions -->
       <sensor name="${prefix}sensor_data">
-        <state_interface name="bumps_right"/>
-        <state_interface name="bumps_left"/>
-        <state_interface name="wheeldrops_right"/>
-        <state_interface name="wheeldrops_left"/>
-        <state_interface name="wheeldrops_caster"/>
-        <state_interface name="wall"/>
-        <state_interface name="cliff_left"/>
-        <state_interface name="cliff_front_left"/>
-        <state_interface name="cliff_front_right"/>
-        <state_interface name="cliff_right"/>
-        <state_interface name="virtual_wall"/>
-        <state_interface name="motor_overcurrents_sidebrush"/>
-        <state_interface name="motor_overcurrents_vacuum"/>
-        <state_interface name="motor_overcurrents_mainbrush"/>
-        <state_interface name="motor_overcurrents_driveright"/> 
-        <state_interface name="motor_overcurrents_driveleft"/>
-        <state_interface name="dirt_detector_left"/>
-        <state_interface name="dirt_detector_right"/>
-        <state_interface name="remote_opcode"/>
-        <state_interface name="button_max"/>
-        <state_interface name="button_clean"/>
-        <state_interface name="button_spot"/>
-        <state_interface name="button_power"/>
-        <state_interface name="charging_state"/>  
-        <state_interface name="voltage"/>
-        <state_interface name="current"/>
-        <state_interface name="temperature"/>
-        <state_interface name="charge"/>
-        <state_interface name="capacity"/>
+        <state_interface name="bumps_right"/>                  <!-- hw_sensor_states[0] -->
+        <state_interface name="bumps_left"/>                   <!-- hw_sensor_states[1] -->
+        <state_interface name="wheeldrops_right"/>             <!-- hw_sensor_states[2] -->
+        <state_interface name="wheeldrops_left"/>              <!-- hw_sensor_states[3] -->
+        <state_interface name="wall"/>                         <!-- hw_sensor_states[4] -->
+        <state_interface name="cliff_left"/>                   <!-- hw_sensor_states[5] -->
+        <state_interface name="cliff_front_left"/>            <!-- hw_sensor_states[6] -->
+        <state_interface name="cliff_front_right"/>            <!-- hw_sensor_states[7] -->
+        <state_interface name="cliff_right"/>                  <!-- hw_sensor_states[8] -->
+        <state_interface name="virtual_wall"/>                 <!-- hw_sensor_states[9] -->
+        <state_interface name="motor_overcurrents_sidebrush"/> <!-- hw_sensor_states[10] -->
+        <state_interface name="motor_overcurrents_vacuum"/>    <!-- hw_sensor_states[11] -->
+        <state_interface name="motor_overcurrents_mainbrush"/> <!-- hw_sensor_states[12] -->
+        <state_interface name="motor_overcurrents_driveright"/> <!-- hw_sensor_states[13] -->
+        <state_interface name="motor_overcurrents_driveleft"/> <!-- hw_sensor_states[14] -->
+        <state_interface name="dirt_detect"/>                  <!-- hw_sensor_states[15] -->
+        <state_interface name="remote_opcode"/>                <!-- hw_sensor_states[16] -->
+        <state_interface name="button_clean"/>                 <!-- hw_sensor_states[17] -->
+        <state_interface name="button_spot"/>                  <!-- hw_sensor_states[18] -->
+        <state_interface name="button_dock"/>                  <!-- hw_sensor_states[19] -->
+        <state_interface name="button_minute"/>                <!-- hw_sensor_states[20] -->
+        <state_interface name="button_hour"/>                  <!-- hw_sensor_states[21] -->
+        <state_interface name="button_day"/>                   <!-- hw_sensor_states[22] -->
+        <state_interface name="button_schedule"/>              <!-- hw_sensor_states[23] -->
+        <state_interface name="button_clock"/>                 <!-- hw_sensor_states[24] -->
+        <state_interface name="distance"/>                     <!-- hw_sensor_states[25] -->
+        <state_interface name="angle"/>                        <!-- hw_sensor_states[26] -->
+        <state_interface name="charging_state"/>               <!-- hw_sensor_states[27] -->
+        <state_interface name="voltage"/>                      <!-- hw_sensor_states[28] -->
+        <state_interface name="current"/>                      <!-- hw_sensor_states[29] -->
+        <state_interface name="temperature"/>                  <!-- hw_sensor_states[30] -->
+        <state_interface name="charge"/>                       <!-- hw_sensor_states[31] -->
+        <state_interface name="capacity"/>                     <!-- hw_sensor_states[32] -->
+        <state_interface name="wall_signal"/>                  <!-- hw_sensor_states[33] -->
+        <state_interface name="cliff_left_signal"/>            <!-- hw_sensor_states[34] -->
+        <state_interface name="cliff_front_left_signal"/>      <!-- hw_sensor_states[35] -->
+        <state_interface name="cliff_front_right_signal"/>     <!-- hw_sensor_states[36] -->
+        <state_interface name="cliff_right_signal"/>           <!-- hw_sensor_states[37] -->
+        <state_interface name="charger_available"/>            <!-- hw_sensor_states[38] -->
+        <state_interface name="open_interface_mode"/>          <!-- hw_sensor_states[39] -->
+        <state_interface name="song_number"/>                  <!-- hw_sensor_states[40] -->
+        <state_interface name="song_playing"/>                 <!-- hw_sensor_states[41] -->
+        <state_interface name="oi_stream_num_packets"/>        <!-- hw_sensor_states[42] -->
+        <state_interface name="velocity"/>                     <!-- hw_sensor_states[43] -->
+        <state_interface name="radius"/>                      <!-- hw_sensor_states[44] -->
+        <state_interface name="velocity_right"/>               <!-- hw_sensor_states[45] -->
+        <state_interface name="velocity_left"/>                <!-- hw_sensor_states[46] -->
+        <state_interface name="encoder_counts_left"/>          <!-- hw_sensor_states[47] -->
+        <state_interface name="encoder_counts_right"/>         <!-- hw_sensor_states[48] -->
+        <state_interface name="light_bumper"/>                 <!-- hw_sensor_states[49] -->
+        <state_interface name="light_bump_left"/>              <!-- hw_sensor_states[50] -->
+        <state_interface name="light_bump_front_left"/>        <!-- hw_sensor_states[51] -->
+        <state_interface name="light_bump_center_left"/>       <!-- hw_sensor_states[52] -->
+        <state_interface name="light_bump_center_right"/>     <!-- hw_sensor_states[53] -->
+        <state_interface name="light_bump_front_right"/>      <!-- hw_sensor_states[54] -->
+        <state_interface name="light_bump_right"/>            <!-- hw_sensor_states[55] -->
+        <state_interface name="ir_opcode_left"/>              <!-- hw_sensor_states[56] -->
+        <state_interface name="ir_opcode_right"/>             <!-- hw_sensor_states[57] -->
+        <state_interface name="left_motor_current"/>           <!-- hw_sensor_states[58] -->
+        <state_interface name="right_motor_current"/>         <!-- hw_sensor_states[59] -->
+        <state_interface name="main_brush_current"/>          <!-- hw_sensor_states[60] -->
+        <state_interface name="side_brush_current"/>          <!-- hw_sensor_states[61] -->
+        <state_interface name="stasis"/>                      <!-- hw_sensor_states[62] -->
+        <state_interface name="x"/>                         <!-- hw_sensor_states[63] -->
+        <state_interface name="y"/>                         <!-- hw_sensor_states[64] -->
+        <state_interface name="theta"/>                     <!-- hw_sensor_states[65] -->
       </sensor>
 
+      <gpio name="${prefix}main_brush">
+        <command_interface name="duty_cycle"/>
+        <state_interface name="duty_cycle"/>
+      </gpio>
+
+      <gpio name="${prefix}side_brush">
+        <command_interface name="duty_cycle"/>
+        <state_interface name="duty_cycle"/>
+      </gpio>
+
+      <gpio name="${prefix}vacuum">
+        <command_interface name="duty_cycle"/>
+        <state_interface name="duty_cycle"/>
+      </gpio>
+
+      <gpio name="${prefix}mode">
+        <command_interface name="value"/>
+        <state_interface name="value"/>
+      </gpio>
+
+  
     </ros2_control>
 
     <xacro:if value="$(arg sim_gazebo_classic)">

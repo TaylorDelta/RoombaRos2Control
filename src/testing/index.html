@@ -1,0 +1,247 @@
+  GNU nano 6.2                                                                                                                                                                                                                                                                                                                            index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roomba Web Control</title>
+    <script src="https://unpkg.com/roslib@1.4.0/build/roslib.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.16.1/plotly.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+        }
+        header {
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            padding: 15px;
+            font-size: 24px;
+        }
+        .container {
+            padding: 15px;
+        }
+        .controls, .status, .info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        button {
+            width: 100px;
+            height: 50px;
+            margin: 5px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:active {
+            background-color: #45a049;
+        }
+        input[type="number"] {
+            padding: 10px;
+            font-size: 16px;
+            width: 60px;
+            margin: 5px 0;
+            border-radius: 5px;
+        }
+        .info-text {
+            margin-top: 15px;
+            text-align: center;
+        }
+        @media (max-width: 600px) {
+            button {
+                width: 80px;
+                height: 45px;
+            }
+            input[type="number"] {
+                width: 50px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        Roomba Web Control
+    </header>
+
+    <div class="container">
+        <!-- Max Velocity Control -->
+        <div class="info">
+            <label for="vel">Max Velocity: </label>
+            <input type="number" id="vel" value="0.2" step="0.05" min="0" max="1">
+            <div class="info-text">Adjust the maximum speed of the Roomba (0 to 1).</div>
+        </div>
+
+        <!-- Turning Speed Control -->
+        <div class="info">
+            <label for="turnVel">Turning Velocity: </label>
+            <input type="number" id="turnVel" value="0.5" step="0.05" min="-1" max="1">
+            <div class="info-text">Adjust the turning speed of the Roomba (negative for left, positive for right).</div>
+        </div>
+
+        <!-- Motion Control Buttons -->
+        <div class="controls">
+            <button id="forwardBtn">Forward</button>
+            <div>
+                <button id="leftBtn">Left</button>
+                <button id="stopBtn">Stop</button>
+                <button id="rightBtn">Right</button>
+            </div>
+            <button id="backwardBtn">Backward</button>
+        </div>
+
+        <!-- Reset Plot Button -->
+        <div class="controls">
+            <button id="resetPlotBtn">Reset Plot</button>
+        </div>
+
+        <!-- Status Information -->
+        <div class="status">
+            <div id="connectionStatus">Connection Status: Waiting for connection...</div>
+            <div id="roombaStatus">Roomba Status: Idle</div>
+        </div>
+
+        <div class="info-text">
+            <p>Use the control buttons to navigate the Roomba and start/stop cleaning. Adjust velocity to control speed and turning.</p>
+        </div>
+
+        <!-- Plotting Area -->
+        <div id="plotly-chart" style="height: 400px; width: 100%;"></div>
+    </div>
+
+    <script>
+        var ros = new ROSLIB.Ros({ url: 'ws://192.168.2.119:9090' });
+        ros.on('connection', () => {
+            console.log('Connected!');
+            document.getElementById('connectionStatus').textContent = 'Connection Status: Connected';
+        });
+        ros.on('error', (error) => {
+            console.log('Error', error);
+            document.getElementById('connectionStatus').textContent = 'Connection Status: Error';
+        });
+        ros.on('close', () => {
+            console.log('Closed');
+            document.getElementById('connectionStatus').textContent = 'Connection Status: Closed';
+        });
+
+        var cmdVel = new ROSLIB.Topic({
+            ros: ros,
+            name: '/diff_drive_controller/cmd_vel',
+            messageType: 'geometry_msgs/msg/TwistStamped'
+        });
+
+        var odom = new ROSLIB.Topic({
+            ros: ros,
+            name: '/diff_drive_controller/odom',
+            messageType: 'nav_msgs/Odometry'
+        });
+
+        // Initializing Plotly chart
+        var data = [{
+            x: [0],
+            y: [0],
+            mode: 'markers+lines',
+            marker: { color: 'blue', size: 10 }
+        }];
+
+        var layout = {
+            title: 'Roomba Position',
+            xaxis: { title: 'X Position' },
+            yaxis: { title: 'Y Position' },
+            showlegend: false
+        };
+
+        Plotly.newPlot('plotly-chart', data, layout);
+
+        // Function to update the plot
+        function updatePlot(x, y) {
+            var update = {
+                x: [[x]],
+                y: [[y]],
+            };
+            Plotly.extendTraces('plotly-chart', update, [0]);
+        }
+
+        // Listen to the /odom topic to get position data
+        odom.subscribe((message) => {
+            var x = message.pose.pose.position.x;
+            var y = message.pose.pose.position.y;
+            updatePlot(x, y);
+        });
+
+        var motionInterval;
+
+        function startMotion(linearX, angularZ) {
+            var vel = parseFloat(document.getElementById('vel').value);
+            var turnVel = parseFloat(document.getElementById('turnVel').value);
+            var twist = new ROSLIB.Message({
+                header: {
+                    stamp: { sec: 0, nanosec: 0 },  // You can use a timestamp if needed
+                    frame_id: 'base_link'  // This depends on your setup
+                },
+                twist: {
+                    linear: { x: linearX * vel, y: 0, z: 0 },
+                    angular: { x: 0, y: 0, z: angularZ * turnVel }
+                }
+            });
+
+            cmdVel.publish(twist);
+
+            motionInterval = setInterval(() => { cmdVel.publish(twist); }, 100);
+        }
+
+        function stopMotion() {
+            clearInterval(motionInterval);
+            cmdVel.publish(new ROSLIB.Message({
+                header: {
+                    stamp: { sec: 0, nanosec: 0 },
+                    frame_id: 'base_link'
+                },
+                twist: {
+                    linear: { x: 0, y: 0, z: 0 },
+                    angular: { x: 0, y: 0, z: 0 }
+                }
+            }));
+
+        }
+
+        function addControlEvents(btn, linearX, angularZ) {
+            btn.addEventListener('mousedown', () => startMotion(linearX, angularZ));
+            btn.addEventListener('mouseup', stopMotion);
+            btn.addEventListener('mouseleave', stopMotion);
+
+            btn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                startMotion(linearX, angularZ);
+            }, { passive: false });
+
+            btn.addEventListener('touchend', stopMotion);
+        }
+
+        addControlEvents(document.getElementById('forwardBtn'), 1, 0);
+        addControlEvents(document.getElementById('backwardBtn'), -1, 0);
+        addControlEvents(document.getElementById('leftBtn'), 0, 1);
+        addControlEvents(document.getElementById('rightBtn'), 0, -1);
+
+        document.getElementById('stopBtn').addEventListener('click', stopMotion);
+
+        // Reset plot button event
+        document.getElementById('resetPlotBtn').addEventListener('click', () => {
+            // Clear the plot data and reset the robot's position
+            Plotly.react('plotly-chart', [{
+                x: [0],
+                y: [0],
+                mode: 'markers+lines',
+                marker: { color: 'blue', size: 10 }
+            }], layout);
+        });
+    </script>
+</body>
+</html>

@@ -78,6 +78,13 @@ def generate_launch_description():
     )
     declared_arguments.append(
         DeclareLaunchArgument(
+            "use_robot",
+            default_value="left",
+            description="Choose left or right robot.",
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
             "mock_sensor_commands",
             default_value="false",
             description="Enable mock command interfaces for sensors used for simple simulations. \
@@ -88,9 +95,8 @@ def generate_launch_description():
         DeclareLaunchArgument(
             "robot_controller",
             default_value="diff_drive_controller",
-            #default_value="robot_simple_controller",
             #default_value="joint_trajectory_controller",
-            choices=["diff_drive_controller","forward_velocity_controller","forward_position_controller", "joint_trajectory_controller", "robot_simple_controller"],
+            choices=["diff_drive_controller","forward_velocity_controller","forward_position_controller", "joint_trajectory_controller"],
             description="Robot controller to start.",
         )
     )
@@ -102,6 +108,7 @@ def generate_launch_description():
     description_file = LaunchConfiguration("description_file")
     prefix = LaunchConfiguration("prefix")
     use_mock_hardware = LaunchConfiguration("use_mock_hardware")
+    use_robot = LaunchConfiguration("use_robot")
     mock_sensor_commands = LaunchConfiguration("mock_sensor_commands")
     robot_controller = LaunchConfiguration("robot_controller")
 
@@ -119,6 +126,9 @@ def generate_launch_description():
             " ",
             "use_mock_hardware:=",
             use_mock_hardware,
+            " ",
+            "use_robot:=",
+            use_robot,
             " ",
             "mock_sensor_commands:=",
             mock_sensor_commands,
@@ -161,7 +171,7 @@ def generate_launch_description():
         arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
     )
 
-    robot_controller_names = [robot_controller, 'robot_simple_controller']
+    robot_controller_names = [robot_controller, 'gpio_command_controller']
     robot_controller_spawners = []
     for controller in robot_controller_names:
         robot_controller_spawners += [
@@ -172,7 +182,7 @@ def generate_launch_description():
             )
         ]
     
-    inactive_robot_controller_names = ["robot_simple_controller"]
+    inactive_robot_controller_names = []
     inactive_robot_controller_spawners = []
     for controller in inactive_robot_controller_names:
         inactive_robot_controller_spawners += [
