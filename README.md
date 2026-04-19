@@ -65,6 +65,8 @@ This results in the Roomba driving a circle with diameter of 1m at a speed of 10
 
 ## Foxglove (Helpfull Webcontrol)
 
+![Foxglove](FoxgloveControl.PNG)
+
 Make sure Foxglove Bridge is installed in your ROS2 workspace:
 
 ```md
