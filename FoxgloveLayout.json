@@ -1,0 +1,628 @@
+{
+  "configById": {
+    "Plot!25ua28h": {
+      "paths": [
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/dynamic_joint_states.interface_values[1].values[13]",
+          "enabled": false,
+          "showLine": true,
+          "label": "endocer counts left"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/dynamic_joint_states.interface_values[1].values[23]",
+          "enabled": false,
+          "color": "#f5774d",
+          "id": "1a4a9446-c6c0-4abe-989d-f066e87bcfb3",
+          "label": "encoder counts right"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/dynamic_joint_states.interface_values[1].values[46]",
+          "enabled": true,
+          "color": "#f7df71",
+          "id": "ae1cce6a-3f70-4c71-878c-e0ce78e52f47",
+          "label": "Charge"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/dynamic_joint_states.interface_values[1].values[50]",
+          "enabled": true,
+          "color": "#5cd6a9",
+          "id": "b8201897-a3ff-4f3f-88d1-d25feb1850e3",
+          "label": "Current"
+        }
+      ],
+      "xAxisVal": "timestamp",
+      "axisScalesMode": "independent",
+      "timeRange": "latest",
+      "timeWindowMode": "sliding",
+      "followingViewWidth": 100
+    },
+    "3D!2qn8s6r": {
+      "topics": {
+        "/robot_description": {
+          "visible": true
+        },
+        "/initialpose": {
+          "visible": false
+        },
+        "/move_base_simple/goal": {
+          "visible": false
+        }
+      },
+      "layers": {
+        "037f2779-a6d9-4fd5-b602-13f393e3b873": {
+          "layerId": "foxglove.Grid",
+          "instanceId": "037f2779-a6d9-4fd5-b602-13f393e3b873"
+        }
+      },
+      "cameraState": {
+        "distance": 13.268408625780955,
+        "perspective": true,
+        "phi": 60.00000000000327,
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "targetOffset": [
+          -0.012091113015512363,
+          1.2292913931438685,
+          -9.726968052943742e-17
+        ],
+        "targetOrientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "thetaOffset": 45.00000000000865,
+        "fovy": 45,
+        "near": 0.5,
+        "far": 5000
+      },
+      "followMode": "follow-pose",
+      "followTf": "odom",
+      "fixedFrame": "odom",
+      "scene": {},
+      "transforms": {},
+      "publish": {
+        "type": "point",
+        "poseTopic": "/move_base_simple/goal",
+        "pointTopic": "/clicked_point",
+        "poseEstimateTopic": "/initialpose",
+        "poseEstimateXDeviation": 0.5,
+        "poseEstimateYDeviation": 0.5,
+        "poseEstimateThetaDeviation": 0.26179939
+      },
+      "imageMode": {},
+      "synchronize": false
+    },
+    "RawMessages!3cjwbxy": {
+      "topicPath": "/diff_drive_controller/odom",
+      "diffEnabled": false,
+      "defaultExpanded": false
+    },
+    "Publish!2950hnp": {
+      "value": "{\n  \"header\": {\n    \"stamp\": {\n      \"sec\": 0,\n      \"nanosec\": 0\n    },\n    \"frame_id\": \"\"\n  },\n  \"interface_groups\": [\n    \"mode\"\n  ],\n  \"interface_values\": [\n    {\n      \"interface_names\": [\n        \"value\"\n      ],\n      \"values\": [\n        135\n      ]\n    }\n  ]\n}",
+      "topicName": "/gpio_command_controller/commands",
+      "datatype": "control_msgs/msg/DynamicInterfaceGroupValues",
+      "foxglovePanelTitle": "Clean",
+      "buttonText": "Clean",
+      "buttonColor": "#ab0000",
+      "advancedView": false
+    },
+    "Publish!fnm2uw": {
+      "value": "{\n  \"header\": {\n    \"stamp\": {\n      \"sec\": 0,\n      \"nanosec\": 0\n    },\n    \"frame_id\": \"\"\n  },\n  \"interface_groups\": [\n    \"mode\"\n  ],\n  \"interface_values\": [\n    {\n      \"interface_names\": [\n        \"value\"\n      ],\n      \"values\": [\n        130\n      ]\n    }\n  ]\n}",
+      "topicName": "/gpio_command_controller/commands",
+      "datatype": "control_msgs/msg/DynamicInterfaceGroupValues",
+      "foxglovePanelTitle": "Safe",
+      "buttonText": "Safe",
+      "buttonColor": "#1dab00",
+      "advancedView": false
+    },
+    "Publish!30nt37w": {
+      "value": "{\n  \"header\": {\n    \"stamp\": {\n      \"sec\": 0,\n      \"nanosec\": 0\n    },\n    \"frame_id\": \"\"\n  },\n  \"interface_groups\": [\n    \"mode\"\n  ],\n  \"interface_values\": [\n    {\n      \"interface_names\": [\n        \"value\"\n      ],\n      \"values\": [\n        128\n      ]\n    }\n  ]\n}",
+      "topicName": "/gpio_command_controller/commands",
+      "datatype": "control_msgs/msg/DynamicInterfaceGroupValues",
+      "foxglovePanelTitle": "Start / Passiv",
+      "buttonText": "Start / Passiv",
+      "buttonColor": "#1dab00",
+      "advancedView": false
+    },
+    "Publish!2cm0i9j": {
+      "value": "{\n  \"header\": {\n    \"stamp\": {\n      \"sec\": 0,\n      \"nanosec\": 0\n    },\n    \"frame_id\": \"\"\n  },\n  \"interface_groups\": [\n    \"mode\"\n  ],\n  \"interface_values\": [\n    {\n      \"interface_names\": [\n        \"value\"\n      ],\n      \"values\": [\n        132\n      ]\n    }\n  ]\n}",
+      "topicName": "/gpio_command_controller/commands",
+      "datatype": "control_msgs/msg/DynamicInterfaceGroupValues",
+      "foxglovePanelTitle": "Clean",
+      "buttonText": "Max",
+      "buttonColor": "#006cab",
+      "advancedView": false
+    },
+    "Publish!49ypw7o": {
+      "value": "{\n  \"header\": {\n    \"stamp\": {\n      \"sec\": 0,\n      \"nanosec\": 0\n    },\n    \"frame_id\": \"\"\n  },\n  \"interface_groups\": [\n    \"mode\"\n  ],\n  \"interface_values\": [\n    {\n      \"interface_names\": [\n        \"value\"\n      ],\n      \"values\": [\n        128\n      ]\n    }\n  ]\n}",
+      "topicName": "/gpio_command_controller/commands",
+      "datatype": "control_msgs/msg/DynamicInterfaceGroupValues",
+      "foxglovePanelTitle": "Start /Passive",
+      "buttonText": "Start /Passive",
+      "buttonColor": "#006cab",
+      "advancedView": false
+    },
+    "Stack!1tr273k": {
+      "foxglovePanelTitle": "Overall",
+      "panels": [
+        {
+          "panelId": "Gauge!4ah3lq6",
+          "size": 0.15848252588228554
+        },
+        {
+          "panelId": "RawMessages!4fuxwnf",
+          "size": 0.12315569257872692
+        },
+        {
+          "panelId": "RawMessages!20moij8",
+          "size": 0.1360750201864493
+        },
+        {
+          "panelId": "RawMessages!1uz4jrb",
+          "size": 0.10906188064302992
+        },
+        {
+          "panelId": "RawMessages!2dwl0b2",
+          "size": 0.12654189958186673
+        },
+        {
+          "panelId": "RawMessages!4fphmc9",
+          "size": 0.11699460428225493
+        },
+        {
+          "panelId": "RawMessages!4kiw7qm",
+          "size": 0.1047922743998929
+        }
+      ]
+    },
+    "Markdown!400vn6g": {
+      "fontSize": 12,
+      "renderMode": "static",
+      "markdown": "- Voltage Gauge\r\n- Charge\r\n- Capacity\r\n- Voltage\r\n- Current\r\n- Code Charging State\r\n  - 0 Not charging\r\n  - 1 Reconditioning Charging\r\n  - 2 Full Charging\r\n  - 3 Trickle Charging\r\n  - 4 Waiting\r\n  - 5 Charging Fault Condition\r\n- The current OI mode is returned. See table below.\r\nRange: 0-3\r\nNumber Mode\r\n  - 0 Off\r\n  - 1 Passive\r\n  - 2 Safe\r\n  - 3 Full"
+    },
+    "Indicator!2m2bq1r": {
+      "path": "/dynamic_joint_states.interface_values[1].values[1]",
+      "style": "bulb",
+      "fontSize": 36,
+      "fallbackColor": "#a0a0a0",
+      "fallbackLabel": "False",
+      "rules": [
+        {
+          "operator": ">",
+          "rawValue": "0.5",
+          "color": "#68e24a",
+          "label": "True"
+        }
+      ],
+      "foxglovePanelTitle": "Bump left"
+    },
+    "Indicator!1ygyol4": {
+      "path": "/dynamic_joint_states.interface_values[1].values[32]",
+      "style": "bulb",
+      "fontSize": 36,
+      "fallbackColor": "#a0a0a0",
+      "fallbackLabel": "False",
+      "rules": [
+        {
+          "operator": "=",
+          "rawValue": "true",
+          "color": "#68e24a",
+          "label": "True"
+        }
+      ],
+      "foxglovePanelTitle": "Wall"
+    },
+    "Indicator!12oxzzd": {
+      "path": "/dynamic_joint_states.interface_values[1].values[0]",
+      "style": "bulb",
+      "fontSize": 36,
+      "fallbackColor": "#a0a0a0",
+      "fallbackLabel": "False",
+      "rules": [
+        {
+          "operator": ">",
+          "rawValue": "0.5",
+          "color": "#68e24a",
+          "label": "True"
+        }
+      ],
+      "foxglovePanelTitle": "Bump right"
+    },
+    "Indicator!1gqxnuv": {
+      "path": "/dynamic_joint_states.interface_values[1].values[3]",
+      "style": "bulb",
+      "fontSize": 36,
+      "fallbackColor": "#a0a0a0",
+      "fallbackLabel": "False",
+      "rules": [
+        {
+          "operator": ">",
+          "rawValue": "0.5",
+          "color": "#68e24a",
+          "label": "True"
+        }
+      ],
+      "foxglovePanelTitle": "Wheeldrop Left"
+    },
+    "Indicator!10u0t8r": {
+      "path": "/dynamic_joint_states.interface_values[1].values[19]",
+      "style": "bulb",
+      "fontSize": 36,
+      "fallbackColor": "#a0a0a0",
+      "fallbackLabel": "False",
+      "rules": [
+        {
+          "operator": "=",
+          "rawValue": "true",
+          "color": "#68e24a",
+          "label": "True"
+        }
+      ],
+      "foxglovePanelTitle": "Dirt Detect"
+    },
+    "Indicator!1l98rl2": {
+      "path": "/dynamic_joint_states.interface_values[1].values[2]",
+      "style": "bulb",
+      "fontSize": 36,
+      "fallbackColor": "#a0a0a0",
+      "fallbackLabel": "False",
+      "rules": [
+        {
+          "operator": ">",
+          "rawValue": "0.5",
+          "color": "#68e24a",
+          "label": "True"
+        }
+      ],
+      "foxglovePanelTitle": "Wheeldrop Right"
+    },
+    "Indicator!4ufdj1": {
+      "path": "/dynamic_joint_states.interface_values[1].values[4]",
+      "style": "bulb",
+      "fontSize": 36,
+      "fallbackColor": "#a0a0a0",
+      "fallbackLabel": "False",
+      "rules": [
+        {
+          "operator": ">",
+          "rawValue": "0.5",
+          "color": "#68e24a",
+          "label": "True"
+        }
+      ],
+      "foxglovePanelTitle": "Cliff Left"
+    },
+    "Indicator!23ihwmo": {
+      "path": "/dynamic_joint_states.interface_values[1].values[5]",
+      "style": "bulb",
+      "fontSize": 36,
+      "fallbackColor": "#a0a0a0",
+      "fallbackLabel": "False",
+      "rules": [
+        {
+          "operator": ">",
+          "rawValue": "0.5",
+          "color": "#68e24a",
+          "label": "True"
+        }
+      ],
+      "foxglovePanelTitle": "Cliff Front Left"
+    },
+    "Indicator!1km3gw7": {
+      "path": "/dynamic_joint_states.interface_values[1].values[52]",
+      "style": "bulb",
+      "fontSize": 36,
+      "fallbackColor": "#a0a0a0",
+      "fallbackLabel": "False",
+      "rules": [
+        {
+          "operator": ">",
+          "rawValue": "0.5",
+          "color": "#68e24a",
+          "label": "True"
+        }
+      ],
+      "foxglovePanelTitle": "Cliff Front Right"
+    },
+    "Indicator!36jz4bw": {
+      "path": "/dynamic_joint_states.interface_values[1].values[65]",
+      "style": "bulb",
+      "fontSize": 36,
+      "fallbackColor": "#a0a0a0",
+      "fallbackLabel": "False",
+      "rules": [
+        {
+          "operator": ">",
+          "rawValue": "0.5",
+          "color": "#68e24a",
+          "label": "True"
+        }
+      ],
+      "foxglovePanelTitle": "Cliff Right"
+    },
+    "Teleop!2wqsp00": {
+      "topic": "/cmd_vel_fg",
+      "publishRate": 5,
+      "upButton": {
+        "field": "linear-x",
+        "value": 0.2
+      },
+      "downButton": {
+        "field": "linear-x",
+        "value": -0.2
+      },
+      "leftButton": {
+        "field": "angular-z",
+        "value": 0.8
+      },
+      "rightButton": {
+        "field": "angular-z",
+        "value": -0.8
+      },
+      "foxglovePanelTitle": "Control",
+      "autoSendStopOnRelease": false,
+      "stopButton": {
+        "field": "linear-x",
+        "value": 0
+      }
+    },
+    "Gauge!4ah3lq6": {
+      "path": "/dynamic_joint_states.interface_values[1].values[28]",
+      "style": "dial",
+      "minValue": 0,
+      "maxValue": 18200,
+      "colorMap": "red-yellow-green",
+      "colorMode": "colormap",
+      "gradient": [
+        "#0000ff",
+        "#ff00ff"
+      ],
+      "reverse": false,
+      "reverseDirection": false,
+      "foxglovePanelTitle": "Voltage"
+    },
+    "RawMessages!4fuxwnf": {
+      "topicPath": "/dynamic_joint_states.interface_values[1].values[46]",
+      "fontSize": 24,
+      "defaultExpanded": false
+    },
+    "RawMessages!20moij8": {
+      "topicPath": "/dynamic_joint_states.interface_values[1].values[44]",
+      "fontSize": 24,
+      "defaultExpanded": false
+    },
+    "RawMessages!1uz4jrb": {
+      "topicPath": "/dynamic_joint_states.interface_values[1].values[28]",
+      "fontSize": 24,
+      "defaultExpanded": false
+    },
+    "RawMessages!2dwl0b2": {
+      "topicPath": "/dynamic_joint_states.interface_values[1].values[50]",
+      "defaultExpanded": false
+    },
+    "RawMessages!4fphmc9": {
+      "topicPath": "/dynamic_joint_states.interface_values[1].values[53]",
+      "defaultExpanded": false
+    },
+    "RawMessages!4kiw7qm": {
+      "topicPath": "/dynamic_joint_states.interface_values[1].values[37]",
+      "defaultExpanded": false
+    },
+    "Stack!2ij6r2b": {
+      "foxglovePanelTitle": "Wheels",
+      "panels": [
+        {
+          "panelId": "Indicator!1od0r7d",
+          "size": 0.08208395802098939
+        },
+        {
+          "panelId": "RawMessages!2figvn3",
+          "size": 0.0550974512743628
+        },
+        {
+          "panelId": "Indicator!3lb9b5z",
+          "size": 0.03810516001841601
+        },
+        {
+          "panelId": "RawMessages!21q00bn",
+          "size": 0.07008995502248871
+        }
+      ]
+    },
+    "Indicator!iy1kdm": {
+      "path": "",
+      "style": "bulb",
+      "fontSize": 36,
+      "fallbackColor": "#a0a0a0",
+      "fallbackLabel": "False",
+      "rules": [
+        {
+          "operator": "=",
+          "rawValue": "true",
+          "color": "#68e24a",
+          "label": "True"
+        }
+      ]
+    },
+    "Indicator!1od0r7d": {
+      "path": "/dynamic_joint_states.interface_values[1].values[3]",
+      "style": "bulb",
+      "fontSize": 36,
+      "fallbackColor": "#a0a0a0",
+      "fallbackLabel": "False",
+      "rules": [
+        {
+          "operator": ">",
+          "rawValue": "0.5",
+          "color": "#68e24a",
+          "label": "True"
+        }
+      ],
+      "foxglovePanelTitle": "Wheeldrop Left"
+    },
+    "RawMessages!2figvn3": {
+      "topicPath": "/dynamic_joint_states.interface_values[1].values[13]",
+      "fontSize": 24
+    },
+    "Indicator!3lb9b5z": {
+      "path": "/dynamic_joint_states.interface_values[1].values[2]",
+      "style": "bulb",
+      "fontSize": 36,
+      "fallbackColor": "#a0a0a0",
+      "fallbackLabel": "False",
+      "rules": [
+        {
+          "operator": ">",
+          "rawValue": "0.5",
+          "color": "#68e24a",
+          "label": "True"
+        }
+      ],
+      "foxglovePanelTitle": "Wheeldrop Right"
+    },
+    "RawMessages!21q00bn": {
+      "topicPath": "/dynamic_joint_states.interface_values[1].values[23]",
+      "fontSize": 24
+    },
+    "RawMessages!z5m31b": {
+      "topicPath": "/dynamic_joint_states",
+      "defaultExpanded": false
+    },
+    "Tab!3lrpnr4": {
+      "activeTabIdx": 1,
+      "tabs": [
+        {
+          "title": "Overview",
+          "layout": {
+            "first": {
+              "first": "Plot!25ua28h",
+              "second": "3D!2qn8s6r",
+              "direction": "row",
+              "splitPercentage": 23.352153735184878
+            },
+            "second": "RawMessages!3cjwbxy",
+            "direction": "row",
+            "splitPercentage": 81.44726712856043
+          }
+        },
+        {
+          "title": "Control & Indicator",
+          "layout": {
+            "first": {
+              "first": {
+                "first": "Publish!2950hnp",
+                "second": {
+                  "first": "Publish!fnm2uw",
+                  "second": "Publish!30nt37w",
+                  "direction": "column",
+                  "splitPercentage": 36.368279913165644
+                },
+                "direction": "column",
+                "splitPercentage": 26.66916377938009
+              },
+              "second": {
+                "first": "Publish!2cm0i9j",
+                "second": "Publish!49ypw7o",
+                "direction": "column"
+              },
+              "direction": "column"
+            },
+            "second": {
+              "first": {
+                "first": "Stack!1tr273k",
+                "second": "Markdown!400vn6g",
+                "direction": "row"
+              },
+              "second": {
+                "first": {
+                  "first": {
+                    "first": "Indicator!2m2bq1r",
+                    "second": {
+                      "first": "Indicator!1ygyol4",
+                      "second": "Indicator!12oxzzd",
+                      "direction": "row"
+                    },
+                    "direction": "row",
+                    "splitPercentage": 35.757575757575786
+                  },
+                  "second": {
+                    "first": {
+                      "first": "Indicator!1gqxnuv",
+                      "second": {
+                        "first": "Indicator!10u0t8r",
+                        "second": "Indicator!1l98rl2",
+                        "direction": "row"
+                      },
+                      "direction": "row",
+                      "splitPercentage": 35.959595959595994
+                    },
+                    "second": {
+                      "first": "Indicator!4ufdj1",
+                      "second": {
+                        "first": "Indicator!23ihwmo",
+                        "second": {
+                          "first": "Indicator!1km3gw7",
+                          "second": "Indicator!36jz4bw",
+                          "direction": "row"
+                        },
+                        "direction": "row",
+                        "splitPercentage": 32.82674772036474
+                      },
+                      "direction": "row",
+                      "splitPercentage": 22.828282828282827
+                    },
+                    "direction": "column",
+                    "splitPercentage": 25.6662839923801
+                  },
+                  "direction": "column",
+                  "splitPercentage": 22.566379800722974
+                },
+                "second": "Teleop!2wqsp00",
+                "direction": "column",
+                "splitPercentage": 55.322311319889174
+              },
+              "direction": "row",
+              "splitPercentage": 42.34426527833533
+            },
+            "direction": "row",
+            "splitPercentage": 19.468202711351605
+          }
+        },
+        {
+          "title": "Storage",
+          "layout": {
+            "first": "Stack!2ij6r2b",
+            "second": "Indicator!iy1kdm",
+            "direction": "row"
+          }
+        }
+      ]
+    }
+  },
+  "layout": {
+    "direction": "row",
+    "first": "RawMessages!z5m31b",
+    "second": "Tab!3lrpnr4",
+    "splitPercentage": 16.4720344191764
+  },
+  "globalVariables": {
+    "": ""
+  },
+  "playbackConfig": {
+    "speed": 1
+  },
+  "userNodes": {
+    "43c09049-098d-4d20-bb7a-f97be4d05cd2": {
+      "sourceCode": "// ==UserScript==\n// @name         FoxyGlove Simple Value Display\n// @namespace    http://tampermonkey.net/\n// @version      1.0\n// @description  Display /dynamic_joint_states.interface_values[1].values[13] in FoxyGlove\n// @author       YourName\n// @match        *://*/*\n// @grant        none\n// ==/UserScript==\n\n(function() {\n    'use strict';\n\n    // Make sure FoxyGlove is loaded\n    function waitForFoxyGlove(callback) {\n        if (window.FoxyGlove) {\n            callback();\n        } else {\n            setTimeout(() => waitForFoxyGlove(callback), 100);\n        }\n    }\n\n    waitForFoxyGlove(() => {\n        // Create a container for the value\n        const container = document.createElement('div');\n        container.style.position = 'fixed';\n        container.style.bottom = '20px';\n        container.style.right = '20px';\n        container.style.padding = '10px';\n        container.style.backgroundColor = 'rgba(0,0,0,0.7)';\n        container.style.color = 'white';\n        container.style.fontSize = '18px';\n        container.style.borderRadius = '5px';\n        container.innerText = 'Value: --';\n        document.body.appendChild(container);\n\n        // Subscribe to the topic\n        const ros = window.FoxyGlove.ros; // assume ROS connection is exposed\n\n        const listener = new window.FoxyGlove.Topic({\n            ros: ros,\n            name: '/dynamic_joint_states',\n            messageType: 'your_msgs/DynamicJointStates', // replace with actual type\n        });\n\n        listener.subscribe((msg) => {\n            try {\n                // Safely extract the value\n                const value = msg.interface_values?.[1]?.values?.[13];\n                container.innerText = 'Value: ' + (value !== undefined ? value.toFixed(4) : '--');\n            } catch (err) {\n                container.innerText = 'Value: --';\n                console.error('Error reading value:', err);\n            }\n        });\n    });\n})();",
+      "name": "43c09049"
+    }
+  }
+}
