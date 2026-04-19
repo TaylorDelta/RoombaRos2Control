@@ -64,9 +64,8 @@ ros2 topic pub /diff_drive_controller/cmd_vel geometry_msgs/msg/TwistStamped "{h
 This results in the Roomba driving a circle with diameter of 1m at a speed of 100mm/s
 
 ## Foxglove (Helpfull Webcontrol)
-
+![Foxglove](FoxgloveControl.PNG)
 Make sure Foxglove Bridge is installed in your ROS2 workspace:
-
 ```md
 sudo apt install ros-${ROS_DISTRO}-foxglove-bridge
 ```
