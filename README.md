@@ -25,8 +25,10 @@ A working serial connection between the host computer and Roomba.
 
 ## Setup and Installation
 1. Clone the repository
+```md
 git clone https://github.com/TaylorDelta/RoombaRos2Control.git
 cd roomba_ros2_controller
+```
 
 3. Install dependencies
 
@@ -84,9 +86,7 @@ ros2 run twist_bridge twist_to_stamped
 
 Ensure that the serial connection between the computer and Roomba is properly established.
 
-Verify that the correct serial port is being used in your launch files.
-
-If commands are not working, check the Roomba's logs to see if there are any communication issues.
+Verify that the correct serial port is being used in the launch files.
 
 If you encounter a problem that isn’t already documented, please create a new issue. Make sure to clearly describe the problem, steps to reproduce it, and any relevant error messages.
 
@@ -100,8 +100,6 @@ This project is licensed under the Apache 2.0 License - see the LICENSE
 The iRobot® Roomba® Serial Command Interface (SCI) Specification
 
 ROS2 and the ROS community for providing an open-source platform for robotics development.
-
-Feel free to modify the README as needed for your specific project! If you have further questions or need more details, let me know!
 
 This project uses code from [RosTeamWorkspace](https://github.com/b-robotized/ros_team_workspace), licensed under the Apache License 2.0.
 
