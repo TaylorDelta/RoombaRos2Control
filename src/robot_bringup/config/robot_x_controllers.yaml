@@ -19,30 +19,24 @@
 # Author: Dr. Denis
 #
 
-controller_manager:
+/**/controller_manager:
   ros__parameters:
     update_rate: 50  # Hz
 
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
 
-    forward_position_controller:              # delete entry if controller is not applicable
-      type: forward_command_controller/ForwardCommandController
-
-    forward_velocity_controller:              # delete entry if controller is not applicable
-      type: forward_command_controller/ForwardCommandController
-
-    joint_trajectory_controller:              # delete entry if controller is not applicable
-      type: joint_trajectory_controller/JointTrajectoryController
-
-    diff_drive_controller:
-      type: diff_drive_controller/DiffDriveController
+    roomba_controller:
+      type: roomba_controller/RoombaController
 
     gpio_command_controller:
         type: gpio_controllers/GpioCommandController
 
 
-diff_drive_controller:
+
+
+
+/**/roomba_controller:
   ros__parameters:
     left_wheel_names: ["left_wheel_joint"]
     right_wheel_names: ["right_wheel_joint"]
@@ -54,23 +48,10 @@ diff_drive_controller:
     open_loop: false
     left_wheel_radius_multiplier: 1.0
     right_wheel_radius_multiplier: 0.977
+    enable_odom_tf: true #done by ekf node
 
-forward_position_controller:                  # delete entry if controller is not applicable
-  ros__parameters:
-    joints:
-      - left_wheel_joint
-      - right_wheel_joint
-    interface_name: position
 
-forward_velocity_controller:                  # delete entry if controller is not applicable
-  ros__parameters:
-    joints:
-      - left_wheel_joint
-      - right_wheel_joint
-
-    interface_name: position
-
-gpio_command_controller:
+/**/gpio_command_controller:
   ros__parameters:
     type: gpio_controllers/GpioCommandController
 
@@ -79,6 +60,9 @@ gpio_command_controller:
       - side_brush
       - vacuum
       - mode
+      - led_bits
+      - led_color
+      - led_intensity
 
     command_interfaces:
       main_brush:
@@ -91,6 +75,15 @@ gpio_command_controller:
         - interfaces:
           - duty_cycle
       mode:
+        - interfaces:
+          - value
+      led_bits:
+        - interfaces:
+          - value
+      led_color:
+        - interfaces:
+          - value
+      led_intensity:
         - interfaces:
           - value
 
@@ -107,29 +100,12 @@ gpio_command_controller:
       mode:
         - interfaces:
           - value
-
-
-joint_trajectory_controller:                  # delete entry if controller is not applicable
-  ros__parameters:
-    joints:
-      - left_wheel_joint
-      - right_wheel_joint
-
-
-
-    command_interfaces:
-      - velocity
-    state_interfaces:
-      - position
-      - velocity
-      - acceleration
-
-    state_publish_rate: 50.0 # Defaults to 50
-    action_monitor_rate: 20.0 # Defaults to 20
-
-    allow_partial_joints_goal: false # Defaults to false
-    constraints:
-      stopped_velocity_tolerance: 0.01 # Defaults to 0.01
-      goal_time: 0.0 # Defaults to 0.0 (start immediately)
-
-
+      led_bits:
+        - interfaces:
+          - value
+      led_color:
+        - interfaces:
+          - value
+      led_intensity:
+        - interfaces:
+          - value

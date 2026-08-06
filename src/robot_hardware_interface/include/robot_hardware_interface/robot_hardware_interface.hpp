@@ -116,6 +116,9 @@ private:
   double last_vl_;
   double last_vr_;
   double last_clean_mode_;
+  double last_led_bits_;       // Store last sent LED bits (0-63)
+  double last_led_color_;      // Store last sent LED color (0-255)
+  double last_led_intensity_;  // Store last sent LED intensity (0-255)
 
   uint8_t last_motors_cmd_[4]; // Store last sent motors command to avoid redundant writes
   

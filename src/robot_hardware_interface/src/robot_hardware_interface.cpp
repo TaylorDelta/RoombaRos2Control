@@ -99,26 +99,6 @@ namespace robot_hardware_interface
       idx_gpio++;
     }
 
-    // hw_commands_[0] = 0.0; // left_wheel_joint velocity
-    // hw_commands_[1] = 0.0; // right_wheel_joint velocity
-    // hw_commands_[2] = 0.0; // clean mode
-
-    // gpio_commands_[0] = 0.0; // side brush
-    // gpio_commands_[1] = 0.0; // vacuum
-    // gpio_commands_[2] = 0.0; // main brush
-
-    // hw_states_position_[0] = 0.0; // left_wheel_joint position
-    // hw_states_position_[1] = 0.0; // right_wheel_joint position
-    // hw_states_position_[2] = 0.0; // clean mode
-    // hw_states_position_[3] = 0.0; // left_wheel_joint velocity
-    // hw_states_position_[4] = 0.0; // right_wheel_joint velocity
-
-    // hw_states_velocity_[0] = 0.0; // left_wheel_joint position
-    // hw_states_velocity_[1] = 0.0; // right_wheel_joint position
-    // hw_states_velocity_[2] = 0.0; // clean mode
-    // hw_states_velocity_[3] = 0.0; // left_wheel_joint velocity
-    // hw_states_velocity_[4] = 0.0; // right_wheel_joint velocity
-
     // Initialize serial connection
     serial_fd_ = -1;
 
@@ -129,6 +109,9 @@ namespace robot_hardware_interface
     last_vl_ = 0;
     last_vr_ = 0;
     last_clean_mode_ = 0.0;
+    last_led_bits_ = 0.0;
+    last_led_color_ = 0.0;
+    last_led_intensity_ = 0.0;
 
     last_motors_cmd_[0] = 144;
     last_motors_cmd_[1] = 0;
@@ -332,18 +315,24 @@ namespace robot_hardware_interface
       timeout_counter++; // Increment the timeout counter to track iteration limit
 
       // Small delay to avoid overwhelming the serial communication
-      usleep(100000); // 10 ms
+      usleep(1000000); // 10 ms
     }
 
     // Check if the loop timed out
     if (timeout_counter >= TIMEOUT_LIMIT)
     {
       RCLCPP_WARN(logger_, "Timeout reached while waiting for stable encoder values.");
-    }
+      previous_left_encoder_counts_ = 0;
+      previous_right_encoder_counts_ = 0;
+      RCLCPP_INFO(logger_, "Encoder values reset to zero.");
 
-    RCLCPP_INFO(logger_, "Encoder values have stabilized.");
-    RCLCPP_INFO(logger_, "Initial Left Wheel Encoder Counts: %d", left_wheel_encoder_counts_);
-    RCLCPP_INFO(logger_, "Initial Right Wheel Encoder Counts: %d", right_wheel_encoder_counts_);
+    } else{
+      // Set encoder counts to zero after stabilization
+      previous_left_encoder_counts_ = 0;
+      previous_right_encoder_counts_ = 0;
+
+      RCLCPP_INFO(logger_, "Encoder values have stabilized and reset to zero.");
+    }
 
     // ---- Read Roomba Sensor Group 0 (26 bytes) ----
 
@@ -408,56 +397,11 @@ namespace robot_hardware_interface
     hw_sensor_states_[30] = static_cast<double>(response[21]);                                              // 1 byte, temperature (°C)
     hw_sensor_states_[31] = static_cast<double>((static_cast<uint16_t>(response[22] << 8) | response[23])); // 2 bytes, unsigned charge (mAh)
     hw_sensor_states_[32] = static_cast<double>((static_cast<uint16_t>(response[24] << 8) | response[25])); // 2 bytes, unsigned capacity (mAh)
-    /*
-    RCLCPP_INFO(logger_, "Bumps and Wheeldrops:");
-    RCLCPP_INFO(logger_, "  Bump Right: %f", hw_sensor_states_[0]);
-    RCLCPP_INFO(logger_, "  Bump Left: %f", hw_sensor_states_[1]);
-    RCLCPP_INFO(logger_, "  Wheel Drop Right: %f", hw_sensor_states_[2]);
-    RCLCPP_INFO(logger_, "  Wheel Drop Left: %f", hw_sensor_states_[3]);
 
-    RCLCPP_INFO(logger_, "Wall Sensor: %f", hw_sensor_states_[4]);
-    RCLCPP_INFO(logger_, "Cliff Sensors:");
-    RCLCPP_INFO(logger_, "  Cliff Left: %f", hw_sensor_states_[5]);
-    RCLCPP_INFO(logger_, "  Cliff Front Left: %f", hw_sensor_states_[6]);
-    RCLCPP_INFO(logger_, "  Cliff Front Right: %f", hw_sensor_states_[7]);
-    RCLCPP_INFO(logger_, "  Cliff Right: %f", hw_sensor_states_[8]);
-    RCLCPP_INFO(logger_, "Virtual Wall: %f", hw_sensor_states_[9]);
-    RCLCPP_INFO(logger_, "Motor Overcurrents:");
-    RCLCPP_INFO(logger_, "  Side Brush: %f", hw_sensor_states_[10]);
-    RCLCPP_INFO(logger_, "  Vacuum: %f", hw_sensor_states_[11]);
-    RCLCPP_INFO(logger_, "  Main Brush: %f", hw_sensor_states_[12]);
-    RCLCPP_INFO(logger_, "  Drive Right: %f", hw_sensor_states_[13]);
-    RCLCPP_INFO(logger_, "  Drive Left: %f", hw_sensor_states_[14]);
-    RCLCPP_INFO(logger_, "  Dirt Detect: %f", hw_sensor_states_[15]);
-    RCLCPP_INFO(logger_, "Remote Control Command: %f", hw_sensor_states_[16]);
-    RCLCPP_INFO(logger_, "Buttons Clean: %f, Spot: %f, Dock: %f", hw_sensor_states_[17], hw_sensor_states_[18], hw_sensor_states_[19]);
-
-    RCLCPP_INFO(logger_, "Distance Traveled: %f meters", hw_sensor_states_[25]);
-    RCLCPP_INFO(logger_, "Angle Turned: %f", hw_sensor_states_[26]);
-    RCLCPP_INFO(logger_, "Charging State: %f", hw_sensor_states_[27]);
-    RCLCPP_INFO(logger_, "Battery Information:");
-    RCLCPP_INFO(logger_, "  Voltage: %f V", hw_sensor_states_[28]);
-    RCLCPP_INFO(logger_, "  Current: %f A", hw_sensor_states_[29]);
-    RCLCPP_INFO(logger_, "  Temperature: %f °C", hw_sensor_states_[30]);
-    RCLCPP_INFO(logger_, "  Charge: %f mAh", hw_sensor_states_[31]);
-    RCLCPP_INFO(logger_, "  Capacity: %f mAh", hw_sensor_states_[32]);
-    */
     // Odometry
     current_pose_x_ = 0.0;
     current_pose_y_ = 0.0;
     current_pose_theta_ = 0.0;
-
-    // hw_states_position_[0] = current_pose_x_; // left_wheel_joint position
-    // hw_states_position_[1] = current_pose_y_; // right_wheel_joint position
-    // hw_states_position_[2] = 6.0; // clean mode
-    // hw_states_position_[3] = current_pose_x_; // left_wheel_joint velocity
-    // hw_states_position_[4] = current_pose_y_; // right_wheel_joint velocity
-
-    // hw_states_velocity_[0] = 0.0; // left_wheel_joint position
-    // hw_states_velocity_[1] = 0.0; // right_wheel_joint position
-    // hw_states_velocity_[2] = 6.0; // clean mode
-    // hw_states_velocity_[3] = 0.0; // left_wheel_joint velocity
-    // hw_states_velocity_[4] = 0.0; // right_wheel_joint velocity
 
     // Start the data stream
     // [148] [Number of packets=1] [Packet ID 100]
@@ -803,6 +747,56 @@ namespace robot_hardware_interface
           boost::asio::write(ser, boost::asio::buffer(&clean_cmd, 1));
           RCLCPP_INFO(logger_, "Sent CLEAN MODE command: %u", clean_cmd);
           last_clean_mode_ = raw_cmd;
+        }
+        catch (const boost::system::system_error &e)
+        {
+          RCLCPP_ERROR(logger_, "Serial write threw an exception: %s", e.what());
+        }
+      }
+    }
+
+    // ======================================
+    // Send LEDS command (opcode 139)
+    // ======================================
+    // Leds command: [139] [Led Bits (0-63)] [Color (0-255)] [Intensity (0-255)]
+    // Led Bits: bit 0=Clean, 1=Spot, 2=Dock, 3=Check Robot, 4=Scheduling, 5=Dirt Detect
+    // Check if LED commands have changed (gpio_commands_[4], [5], [6])
+    
+    if (gpio_commands_[4] != last_led_bits_ || 
+        gpio_commands_[5] != last_led_color_ || 
+        gpio_commands_[6] != last_led_intensity_)
+    {
+      const double led_bits_raw = gpio_commands_[4];
+      const double led_color_raw = gpio_commands_[5];
+      const double led_intensity_raw = gpio_commands_[6];
+      
+      // Validate ranges
+      if (led_bits_raw < 0 || led_bits_raw > 63 ||
+          led_color_raw < 0 || led_color_raw > 255 ||
+          led_intensity_raw < 0 || led_intensity_raw > 255)
+      {
+        RCLCPP_WARN(logger_, 
+                    "Invalid LED values: bits=%f (0-63), color=%f (0-255), intensity=%f (0-255)",
+                    led_bits_raw, led_color_raw, led_intensity_raw);
+      }
+      else
+      {
+        uint8_t led_cmd_array[] = {
+            139,
+            static_cast<uint8_t>(static_cast<int>(led_bits_raw)),
+            static_cast<uint8_t>(static_cast<int>(led_color_raw)),
+            static_cast<uint8_t>(static_cast<int>(led_intensity_raw))};
+        
+        try
+        {
+          boost::asio::write(ser, boost::asio::buffer(led_cmd_array, 4));
+          RCLCPP_INFO(logger_, "Sent LEDS command: bits=%u, color=%u, intensity=%u",
+                      led_cmd_array[1], led_cmd_array[2], led_cmd_array[3]);
+          
+          // Update last sent values
+          last_led_bits_ = led_bits_raw;
+          last_led_color_ = led_color_raw;
+          last_led_intensity_ = led_intensity_raw;
         }
         catch (const boost::system::system_error &e)
         {

@@ -1,0 +1,7 @@
+<library path="roomba_controller">
+  <class name="roomba_controller/RoombaController" type="roomba_controller::RoombaController" base_class_type="controller_interface::ControllerInterface">
+  <description>
+    The differential drive controller transforms linear and angular velocity messages into signals for each wheel(s) for a differential drive robot.
+  </description>
+  </class>
+</library>

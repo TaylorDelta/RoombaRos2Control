@@ -17,7 +17,7 @@ class TwistToStamped(Node):
 
         self.publisher = self.create_publisher(
             TwistStamped,
-            'diff_drive_controller/cmd_vel',      # Robot expects stamped here
+            '/roomba_controller/cmd_vel',      # roomba_controller expects TwistStamped here
             10
         )
 

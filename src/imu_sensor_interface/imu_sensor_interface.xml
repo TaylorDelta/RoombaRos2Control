@@ -1,0 +1,9 @@
+<library path="imu_sensor_interface">
+  <class name="imu_sensor_interface/IMUSensorInterface"
+         type="imu_sensor_interface::IMUSensorInterface"
+         base_class_type="hardware_interface::SensorInterface">
+    <description>
+      ros2_control hardware interface.
+    </description>
+  </class>
+</library>

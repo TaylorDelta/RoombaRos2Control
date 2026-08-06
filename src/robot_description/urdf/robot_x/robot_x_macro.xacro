@@ -8,7 +8,7 @@
 
     <!-- BASE LINK -->
     <link name="${prefix}base_link">
-      <xacro:default_inertial/>
+      <!-- <xacro:default_inertial/> -->
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
