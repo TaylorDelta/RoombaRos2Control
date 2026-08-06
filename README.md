@@ -1,3 +1,12 @@
+setup
+
+ros2 launch robot_bringup robot_x_v2.launch.py   namespace:=robot1   prefix:=robot1/ controllers_file:=robot_x_controllers_robot1.yaml
+
+
+ros2 launch robot_bringup robot_x_v2.launch.py   namespace:=robot2   prefix:=robot2/ controllers_file:=robot_x_controllers_robot2.yaml
+
+
+
 # Roomba Hardware Interface and ROS 2 Controller
 
 This repository provides a ros2_control hardware interface for iRobot® Roomba® using the SCI (Serial Command Interface) and a custom diff-drive-like controller plugin (roomba_controller). It includes bringup, URDF, and a small Twist→TwistStamped bridge for Foxglove control.

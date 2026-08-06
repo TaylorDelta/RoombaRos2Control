@@ -1,0 +1,1156 @@
+{
+  "configById": {
+    "Plot!25ua28h": {
+      "paths": [
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/robot1/dynamic_joint_states.interface_values[2].values[13]",
+          "enabled": false,
+          "showLine": true,
+          "label": "R1 encoder counts left"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/robot1/dynamic_joint_states.interface_values[2].values[23]",
+          "enabled": false,
+          "color": "#f5774d",
+          "id": "1a4a9446-c6c0-4abe-989d-f066e87bcfb3",
+          "label": "R1 encoder counts right"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/robot1/dynamic_joint_states.interface_values[2].values[46]",
+          "enabled": true,
+          "color": "#f7df71",
+          "id": "ae1cce6a-3f70-4c71-878c-e0ce78e52f47",
+          "label": "R1 Charge"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/robot1/dynamic_joint_states.interface_values[2].values[50]",
+          "enabled": true,
+          "color": "#5cd6a9",
+          "id": "b8201897-a3ff-4f3f-88d1-d25feb1850e3",
+          "label": "R1 Current"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/robot2/dynamic_joint_states.interface_values[2].values[13]",
+          "enabled": false,
+          "showLine": true,
+          "label": "R2 encoder counts left"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/robot2/dynamic_joint_states.interface_values[2].values[23]",
+          "enabled": false,
+          "color": "#f5774d",
+          "id": "r2-1a4a9446-c6c0-4abe-989d-f066e87bcfb3",
+          "label": "R2 encoder counts right"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/robot2/dynamic_joint_states.interface_values[2].values[46]",
+          "enabled": true,
+          "color": "#f7df71",
+          "id": "r2-ae1cce6a-3f70-4c71-878c-e0ce78e52f47",
+          "label": "R2 Charge"
+        },
+        {
+          "timestampMethod": "receiveTime",
+          "value": "/robot2/dynamic_joint_states.interface_values[2].values[50]",
+          "enabled": true,
+          "color": "#5cd6a9",
+          "id": "r2-b8201897-a3ff-4f3f-88d1-d25feb1850e3",
+          "label": "R2 Current"
+        }
+      ],
+      "xAxisVal": "timestamp",
+      "axisScalesMode": "independent",
+      "timeRange": "latest",
+      "timeWindowMode": "sliding",
+      "followingViewWidth": 100
+    },
+    "3D!2qn8s6r": {
+      "topics": {
+        "/robot1/robot_description": {
+          "visible": true
+        },
+        "/robot1/initialpose": {
+          "visible": false
+        },
+        "/robot1/move_base_simple/goal": {
+          "visible": false
+        },
+        "/robot2/robot_description": {
+          "visible": true
+        },
+        "/robot2/initialpose": {
+          "visible": false
+        },
+        "/robot2/move_base_simple/goal": {
+          "visible": false
+        }
+      },
+      "layers": {
+        "037f2779-a6d9-4fd5-b602-13f393e3b873": {
+          "layerId": "foxglove.Grid",
+          "instanceId": "037f2779-a6d9-4fd5-b602-13f393e3b873"
+        }
+      },
+      "cameraState": {
+        "perspective": true,
+        "distance": 5.006881794848942,
+        "phi": 60.00000000000348,
+        "thetaOffset": 45.000000000009116,
+        "targetOffset": [
+          0.1820130894101918,
+          0.6299028465208882,
+          -8.723072535585239e-17
+        ],
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "targetOrientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "fovy": 45,
+        "near": 0.5,
+        "far": 5000
+      },
+      "followMode": "follow-pose",
+      "followTf": "robot1/base_link",
+      "fixedFrame": "robot1/odom",
+      "scene": {},
+      "transforms": {},
+      "publish": {
+        "type": "point",
+        "poseTopic": "/move_base_simple/goal",
+        "pointTopic": "/clicked_point",
+        "poseEstimateTopic": "/initialpose",
+        "poseEstimateXDeviation": 0.5,
+        "poseEstimateYDeviation": 0.5,
+        "poseEstimateThetaDeviation": 0.26179939
+      },
+      "imageMode": {},
+      "synchronize": false
+    },
+    "RawMessages!3cjwbxy": {
+      "topicPath": "/robot1/diff_drive_controller/odom",
+      "diffEnabled": false,
+      "defaultExpanded": false
+    },
+    "RawMessages!r2_odom": {
+      "topicPath": "/robot2/diff_drive_controller/odom",
+      "diffEnabled": false,
+      "defaultExpanded": false
+    },
+    "Publish!2950hnp": {
+      "value": "{\n  \"header\": {\n    \"stamp\": {\n      \"sec\": 0,\n      \"nanosec\": 0\n    },\n    \"frame_id\": \"\"\n  },\n  \"interface_groups\": [\n    \"mode\"\n  ],\n  \"interface_values\": [\n    {\n      \"interface_names\": [\n        \"value\"\n      ],\n      \"values\": [\n        135\n      ]\n    }\n  ]\n}",
+      "topicName": "/robot1/gpio_command_controller/commands",
+      "datatype": "control_msgs/msg/DynamicInterfaceGroupValues",
+      "foxglovePanelTitle": "R1 Clean",
+      "buttonText": "R1 Clean",
+      "buttonColor": "#ab0000",
+      "advancedView": false
+    },
+    "Publish!fnm2uw": {
+      "value": "{\n  \"header\": {\n    \"stamp\": {\n      \"sec\": 0,\n      \"nanosec\": 0\n    },\n    \"frame_id\": \"\"\n  },\n  \"interface_groups\": [\n    \"mode\"\n  ],\n  \"interface_values\": [\n    {\n      \"interface_names\": [\n        \"value\"\n      ],\n      \"values\": [\n        130\n      ]\n    }\n  ]\n}",
+      "topicName": "/robot1/gpio_command_controller/commands",
+      "datatype": "control_msgs/msg/DynamicInterfaceGroupValues",
+      "foxglovePanelTitle": "R1 Safe",
+      "buttonText": "R1 Safe",
+      "buttonColor": "#1dab00",
+      "advancedView": false
+    },
+    "Publish!30nt37w": {
+      "value": "{\n  \"header\": {\n    \"stamp\": {\n      \"sec\": 0,\n      \"nanosec\": 0\n    },\n    \"frame_id\": \"\"\n  },\n  \"interface_groups\": [\n    \"robot1/mode\"\n  ],\n  \"interface_values\": [\n    {\n      \"interface_names\": [\n        \"value\"\n      ],\n      \"values\": [\n        128\n      ]\n    }\n  ]\n}",
+      "topicName": "/robot1/gpio_command_controller/commands",
+      "datatype": "control_msgs/msg/DynamicInterfaceGroupValues",
+      "foxglovePanelTitle": "R1 Start / Passiv",
+      "buttonText": "R1 Start / Passiv",
+      "buttonColor": "#1dab00",
+      "advancedView": true
+    },
+    "Publish!2cm0i9j": {
+      "value": "{\n  \"header\": {\n    \"stamp\": {\n      \"sec\": 0,\n      \"nanosec\": 0\n    },\n    \"frame_id\": \"\"\n  },\n  \"interface_groups\": [\n    \"mode\"\n  ],\n  \"interface_values\": [\n    {\n      \"interface_names\": [\n        \"value\"\n      ],\n      \"values\": [\n        132\n      ]\n    }\n  ]\n}",
+      "topicName": "/robot1/gpio_command_controller/commands",
+      "datatype": "control_msgs/msg/DynamicInterfaceGroupValues",
+      "foxglovePanelTitle": "R1 Max",
+      "buttonText": "R1 Max",
+      "buttonColor": "#006cab",
+      "advancedView": false
+    },
+    "Publish!49ypw7o": {
+      "value": "{\n  \"header\": {\n    \"stamp\": {\n      \"sec\": 0,\n      \"nanosec\": 0\n    },\n    \"frame_id\": \"\"\n  },\n  \"interface_groups\": [\n    \"mode\"\n  ],\n  \"interface_values\": [\n    {\n      \"interface_names\": [\n        \"value\"\n      ],\n      \"values\": [\n        128\n      ]\n    }\n  ]\n}",
+      "topicName": "/robot1/gpio_command_controller/commands",
+      "datatype": "control_msgs/msg/DynamicInterfaceGroupValues",
+      "foxglovePanelTitle": "R1 Start /Passive",
+      "buttonText": "R1 Start /Passive",
+      "buttonColor": "#006cab",
+      "advancedView": false
+    },
+    "Stack!1tr273k": {
+      "foxglovePanelTitle": "R1 Overall",
+      "panels": [
+        {
+          "panelId": "Gauge!4ah3lq6",
+          "size": 0.15848252588228554
+        },
+        {
+          "panelId": "RawMessages!4fuxwnf",
+          "size": 0.18695030504590576
+        },
+        {
+          "panelId": "RawMessages!20moij8",
+          "size": 0.18742190339173953
+        },
+        {
+          "panelId": "RawMessages!1uz4jrb",
+          "size": 0.19619598547624978
+        },
+        {
+          "panelId": "RawMessages!2dwl0b2",
+          "size": 0.12654189958186673
+        },
+        {
+          "panelId": "RawMessages!4fphmc9",
+          "size": 0.11699460428225493
+        },
+        {
+          "panelId": "RawMessages!4kiw7qm",
+          "size": 0.1047922743998929
+        }
+      ]
+    },
+    "Markdown!400vn6g": {
+      "fontSize": 12,
+      "renderMode": "static",
+      "markdown": "- Voltage Gauge\r\n- Charge\r\n- Capacity\r\n- Voltage\r\n- Current\r\n- Code Charging State\r\n  - 0 Not charging\r\n  - 1 Reconditioning Charging\r\n  - 2 Full Charging\r\n  - 3 Trickle Charging\r\n  - 4 Waiting\r\n  - 5 Charging Fault Condition\r\n- The current OI mode is returned. See table below.\r\nRange: 0-3\r\nNumber Mode\r\n  - 0 Off\r\n  - 1 Passive\r\n  - 2 Safe\r\n  - 3 Full"
+    },
+    "Indicator!2m2bq1r": {
+      "path": "/robot1/dynamic_joint_states.interface_values[2].values[1]",
+      "style": "bulb",
+      "fontSize": 36,
+      "fallbackColor": "#a0a0a0",
+      "fallbackLabel": "False",
+      "rules": [
+        {
+          "operator": ">",
+          "rawValue": "0.5",
+          "color": "#68e24a",
+          "label": "True"
+        }
+      ],
+      "foxglovePanelTitle": "R1 Bump left"
+    },
+    "Indicator!1ygyol4": {
+      "path": "/robot1/dynamic_joint_states.interface_values[2].values[32]",
+      "style": "bulb",
+      "fontSize": 36,
+      "fallbackColor": "#a0a0a0",
+      "fallbackLabel": "False",
+      "rules": [
+        {
+          "operator": "=",
+          "rawValue": "true",
+          "color": "#68e24a",
+          "label": "True"
+        }
+      ],
+      "foxglovePanelTitle": "R1 Wall"
+    },
+    "Indicator!12oxzzd": {
+      "path": "/robot1/dynamic_joint_states.interface_values[2].values[0]",
+      "style": "bulb",
+      "fontSize": 36,
+      "fallbackColor": "#a0a0a0",
+      "fallbackLabel": "False",
+      "rules": [
+        {
+          "operator": ">",
+          "rawValue": "0.5",
+          "color": "#68e24a",
+          "label": "True"
+        }
+      ],
+      "foxglovePanelTitle": "R1 Bump right"
+    },
+    "Indicator!1gqxnuv": {
+      "path": "/robot1/dynamic_joint_states.interface_values[2].values[3]",
+      "style": "bulb",
+      "fontSize": 36,
+      "fallbackColor": "#a0a0a0",
+      "fallbackLabel": "False",
+      "rules": [
+        {
+          "operator": ">",
+          "rawValue": "0.5",
+          "color": "#68e24a",
+          "label": "True"
+        }
+      ],
+      "foxglovePanelTitle": "R1 Wheeldrop Left"
+    },
+    "Indicator!10u0t8r": {
+      "path": "/robot1/dynamic_joint_states.interface_values[2].values[19]",
+      "style": "bulb",
+      "fontSize": 36,
+      "fallbackColor": "#a0a0a0",
+      "fallbackLabel": "False",
+      "rules": [
+        {
+          "operator": "=",
+          "rawValue": "true",
+          "color": "#68e24a",
+          "label": "True"
+        }
+      ],
+      "foxglovePanelTitle": "R1 Dirt Detect"
+    },
+    "Indicator!1l98rl2": {
+      "path": "/robot1/dynamic_joint_states.interface_values[2].values[2]",
+      "style": "bulb",
+      "fontSize": 36,
+      "fallbackColor": "#a0a0a0",
+      "fallbackLabel": "False",
+      "rules": [
+        {
+          "operator": ">",
+          "rawValue": "0.5",
+          "color": "#68e24a",
+          "label": "True"
+        }
+      ],
+      "foxglovePanelTitle": "R1 Wheeldrop Right"
+    },
+    "Indicator!4ufdj1": {
+      "path": "/robot1/dynamic_joint_states.interface_values[2].values[4]",
+      "style": "bulb",
+      "fontSize": 36,
+      "fallbackColor": "#a0a0a0",
+      "fallbackLabel": "False",
+      "rules": [
+        {
+          "operator": ">",
+          "rawValue": "0.5",
+          "color": "#68e24a",
+          "label": "True"
+        }
+      ],
+      "foxglovePanelTitle": "R1 Cliff Left"
+    },
+    "Indicator!23ihwmo": {
+      "path": "/robot1/dynamic_joint_states.interface_values[2].values[5]",
+      "style": "bulb",
+      "fontSize": 36,
+      "fallbackColor": "#a0a0a0",
+      "fallbackLabel": "False",
+      "rules": [
+        {
+          "operator": ">",
+          "rawValue": "0.5",
+          "color": "#68e24a",
+          "label": "True"
+        }
+      ],
+      "foxglovePanelTitle": "R1 Cliff Front Left"
+    },
+    "Indicator!1km3gw7": {
+      "path": "/robot1/dynamic_joint_states.interface_values[2].values[52]",
+      "style": "bulb",
+      "fontSize": 36,
+      "fallbackColor": "#a0a0a0",
+      "fallbackLabel": "False",
+      "rules": [
+        {
+          "operator": ">",
+          "rawValue": "0.5",
+          "color": "#68e24a",
+          "label": "True"
+        }
+      ],
+      "foxglovePanelTitle": "R1 Cliff Front Right"
+    },
+    "Indicator!36jz4bw": {
+      "path": "/robot1/dynamic_joint_states.interface_values[2].values[65]",
+      "style": "bulb",
+      "fontSize": 36,
+      "fallbackColor": "#a0a0a0",
+      "fallbackLabel": "False",
+      "rules": [
+        {
+          "operator": ">",
+          "rawValue": "0.5",
+          "color": "#68e24a",
+          "label": "True"
+        }
+      ],
+      "foxglovePanelTitle": "R1 Cliff Right"
+    },
+    "Teleop!2wqsp00": {
+      "topic": "/robot1/cmd_vel_fg",
+      "publishRate": 5,
+      "upButton": {
+        "field": "linear-x",
+        "value": 0.2
+      },
+      "downButton": {
+        "field": "linear-x",
+        "value": -0.2
+      },
+      "leftButton": {
+        "field": "angular-z",
+        "value": 0.8
+      },
+      "rightButton": {
+        "field": "angular-z",
+        "value": -0.8
+      },
+      "foxglovePanelTitle": "R1 Control",
+      "autoSendStopOnRelease": false,
+      "stopButton": {
+        "field": "linear-x",
+        "value": 0
+      }
+    },
+    "Gauge!4ah3lq6": {
+      "path": "/robot1/dynamic_joint_states.interface_values[2].values[28]",
+      "style": "dial",
+      "minValue": 0,
+      "maxValue": 18200,
+      "colorMap": "red-yellow-green",
+      "colorMode": "colormap",
+      "gradient": [
+        "#0000ff",
+        "#ff00ff"
+      ],
+      "reverse": false,
+      "reverseDirection": false,
+      "foxglovePanelTitle": "R1 Voltage",
+      "tickInterval": 0.1,
+      "showTicks": false
+    },
+    "RawMessages!4fuxwnf": {
+      "topicPath": "/robot1/dynamic_joint_states.interface_values[2].values[46]",
+      "fontSize": 24,
+      "defaultExpanded": false
+    },
+    "RawMessages!20moij8": {
+      "topicPath": "/robot2/dynamic_joint_states.interface_values[2].values[46]",
+      "fontSize": 24,
+      "defaultExpanded": false
+    },
+    "RawMessages!1uz4jrb": {
+      "topicPath": "/robot1/dynamic_joint_states.interface_values[2].values[28]",
+      "fontSize": 24,
+      "defaultExpanded": false
+    },
+    "RawMessages!2dwl0b2": {
+      "topicPath": "/robot1/dynamic_joint_states.interface_values[2].values[50]",
+      "defaultExpanded": false
+    },
+    "RawMessages!4fphmc9": {
+      "topicPath": "/robot1/dynamic_joint_states.interface_values[2].values[37]",
+      "defaultExpanded": false
+    },
+    "RawMessages!4kiw7qm": {
+      "topicPath": "/robot1/dynamic_joint_states.interface_values[2].values[37]",
+      "defaultExpanded": false
+    },
+    "Publish!r2_2950hnp": {
+      "value": "{\n  \"header\": {\n    \"stamp\": {\n      \"sec\": 0,\n      \"nanosec\": 0\n    },\n    \"frame_id\": \"\"\n  },\n  \"interface_groups\": [\n    \"mode\"\n  ],\n  \"interface_values\": [\n    {\n      \"interface_names\": [\n        \"value\"\n      ],\n      \"values\": [\n        135\n      ]\n    }\n  ]\n}",
+      "topicName": "/robot2/gpio_command_controller/commands",
+      "datatype": "control_msgs/msg/DynamicInterfaceGroupValues",
+      "foxglovePanelTitle": "R2 Clean",
+      "buttonText": "R2 Clean",
+      "buttonColor": "#ab0000",
+      "advancedView": false
+    },
+    "Publish!r2_fnm2uw": {
+      "value": "{\n  \"header\": {\n    \"stamp\": {\n      \"sec\": 0,\n      \"nanosec\": 0\n    },\n    \"frame_id\": \"\"\n  },\n  \"interface_groups\": [\n    \"robot2/mode\"\n  ],\n  \"interface_values\": [\n    {\n      \"interface_names\": [\n        \"value\"\n      ],\n      \"values\": [\n        130\n      ]\n    }\n  ]\n}",
+      "topicName": "/robot2/gpio_command_controller/commands",
+      "datatype": "control_msgs/msg/DynamicInterfaceGroupValues",
+      "foxglovePanelTitle": "R2 Safe",
+      "buttonText": "R2 Safe",
+      "buttonColor": "#1dab00",
+      "advancedView": true
+    },
+    "Publish!r2_30nt37w": {
+      "value": "{\n  \"header\": {\n    \"stamp\": {\n      \"sec\": 0,\n      \"nanosec\": 0\n    },\n    \"frame_id\": \"\"\n  },\n  \"interface_groups\": [\n    \"robot2/mode\"\n  ],\n  \"interface_values\": [\n    {\n      \"interface_names\": [\n        \"value\"\n      ],\n      \"values\": [\n        128\n      ]\n    }\n  ]\n}",
+      "topicName": "/robot2/gpio_command_controller/commands",
+      "datatype": "control_msgs/msg/DynamicInterfaceGroupValues",
+      "foxglovePanelTitle": "R2 Start / Passiv",
+      "buttonText": "R2 Start / Passiv",
+      "buttonColor": "#1dab00",
+      "advancedView": false
+    },
+    "Publish!r2_2cm0i9j": {
+      "value": "{\n  \"header\": {\n    \"stamp\": {\n      \"sec\": 0,\n      \"nanosec\": 0\n    },\n    \"frame_id\": \"\"\n  },\n  \"interface_groups\": [\n    \"robot2/mode\"\n  ],\n  \"interface_values\": [\n    {\n      \"interface_names\": [\n        \"value\"\n      ],\n      \"values\": [\n        132\n      ]\n    }\n  ]\n}",
+      "topicName": "/robot2/gpio_command_controller/commands",
+      "datatype": "control_msgs/msg/DynamicInterfaceGroupValues",
+      "foxglovePanelTitle": "R2 Max",
+      "buttonText": "R2 Max",
+      "buttonColor": "#006cab",
+      "advancedView": false
+    },
+    "Publish!r2_49ypw7o": {
+      "value": "{\n  \"header\": {\n    \"stamp\": {\n      \"sec\": 0,\n      \"nanosec\": 0\n    },\n    \"frame_id\": \"\"\n  },\n  \"interface_groups\": [\n    \"mode\"\n  ],\n  \"interface_values\": [\n    {\n      \"interface_names\": [\n        \"value\"\n      ],\n      \"values\": [\n        128\n      ]\n    }\n  ]\n}",
+      "topicName": "/robot2/gpio_command_controller/commands",
+      "datatype": "control_msgs/msg/DynamicInterfaceGroupValues",
+      "foxglovePanelTitle": "R2 Start /Passive",
+      "buttonText": "R2 Start /Passive",
+      "buttonColor": "#006cab",
+      "advancedView": false
+    },
+    "Stack!r2_1tr273k": {
+      "foxglovePanelTitle": "R2 Overall",
+      "panels": [
+        {
+          "panelId": "Gauge!r2_4ah3lq6",
+          "size": 0.15848252588228554
+        },
+        {
+          "panelId": "RawMessages!r2_4fuxwnf",
+          "size": 0.18096023171721698
+        },
+        {
+          "panelId": "RawMessages!r2_20moij8",
+          "size": 0.1805400502929801
+        },
+        {
+          "panelId": "RawMessages!r2_1uz4jrb",
+          "size": 0.21429578522848614
+        },
+        {
+          "panelId": "RawMessages!r2_2dwl0b2",
+          "size": 0.16359609133730907
+        },
+        {
+          "panelId": "RawMessages!r2_4fphmc9",
+          "size": 0.11699460428225493
+        },
+        {
+          "panelId": "RawMessages!r2_4kiw7qm",
+          "size": 0.12702478945315832
+        }
+      ]
+    },
+    "Indicator!r2_2m2bq1r": {
+      "path": "/robot2/dynamic_joint_states.interface_values[2].values[1]",
+      "style": "bulb",
+      "fontSize": 36,
+      "fallbackColor": "#a0a0a0",
+      "fallbackLabel": "False",
+      "rules": [
+        {
+          "operator": ">",
+          "rawValue": "0.5",
+          "color": "#68e24a",
+          "label": "True"
+        }
+      ],
+      "foxglovePanelTitle": "R2 Bump left"
+    },
+    "Indicator!r2_1ygyol4": {
+      "path": "/robot2/dynamic_joint_states.interface_values[2].values[32]",
+      "style": "bulb",
+      "fontSize": 36,
+      "fallbackColor": "#a0a0a0",
+      "fallbackLabel": "False",
+      "rules": [
+        {
+          "operator": "=",
+          "rawValue": "true",
+          "color": "#68e24a",
+          "label": "True"
+        }
+      ],
+      "foxglovePanelTitle": "R2 Wall"
+    },
+    "Indicator!r2_12oxzzd": {
+      "path": "/robot2/dynamic_joint_states.interface_values[2].values[0]",
+      "style": "bulb",
+      "fontSize": 36,
+      "fallbackColor": "#a0a0a0",
+      "fallbackLabel": "False",
+      "rules": [
+        {
+          "operator": ">",
+          "rawValue": "0.5",
+          "color": "#68e24a",
+          "label": "True"
+        }
+      ],
+      "foxglovePanelTitle": "R2 Bump right"
+    },
+    "Indicator!r2_1gqxnuv": {
+      "path": "/robot2/dynamic_joint_states.interface_values[2].values[3]",
+      "style": "bulb",
+      "fontSize": 36,
+      "fallbackColor": "#a0a0a0",
+      "fallbackLabel": "False",
+      "rules": [
+        {
+          "operator": ">",
+          "rawValue": "0.5",
+          "color": "#68e24a",
+          "label": "True"
+        }
+      ],
+      "foxglovePanelTitle": "R2 Wheeldrop Left"
+    },
+    "Indicator!r2_10u0t8r": {
+      "path": "/robot2/dynamic_joint_states.interface_values[2].values[19]",
+      "style": "bulb",
+      "fontSize": 36,
+      "fallbackColor": "#a0a0a0",
+      "fallbackLabel": "False",
+      "rules": [
+        {
+          "operator": "=",
+          "rawValue": "true",
+          "color": "#68e24a",
+          "label": "True"
+        }
+      ],
+      "foxglovePanelTitle": "R2 Dirt Detect"
+    },
+    "Indicator!r2_1l98rl2": {
+      "path": "/robot2/dynamic_joint_states.interface_values[2].values[2]",
+      "style": "bulb",
+      "fontSize": 36,
+      "fallbackColor": "#a0a0a0",
+      "fallbackLabel": "False",
+      "rules": [
+        {
+          "operator": ">",
+          "rawValue": "0.5",
+          "color": "#68e24a",
+          "label": "True"
+        }
+      ],
+      "foxglovePanelTitle": "R2 Wheeldrop Right"
+    },
+    "Indicator!r2_4ufdj1": {
+      "path": "/robot2/dynamic_joint_states.interface_values[2].values[4]",
+      "style": "bulb",
+      "fontSize": 36,
+      "fallbackColor": "#a0a0a0",
+      "fallbackLabel": "False",
+      "rules": [
+        {
+          "operator": ">",
+          "rawValue": "0.5",
+          "color": "#68e24a",
+          "label": "True"
+        }
+      ],
+      "foxglovePanelTitle": "R2 Cliff Left"
+    },
+    "Indicator!r2_23ihwmo": {
+      "path": "/robot2/dynamic_joint_states.interface_values[2].values[5]",
+      "style": "bulb",
+      "fontSize": 36,
+      "fallbackColor": "#a0a0a0",
+      "fallbackLabel": "False",
+      "rules": [
+        {
+          "operator": ">",
+          "rawValue": "0.5",
+          "color": "#68e24a",
+          "label": "True"
+        }
+      ],
+      "foxglovePanelTitle": "R2 Cliff Front Left"
+    },
+    "Indicator!r2_1km3gw7": {
+      "path": "/robot2/dynamic_joint_states.interface_values[2].values[52]",
+      "style": "bulb",
+      "fontSize": 36,
+      "fallbackColor": "#a0a0a0",
+      "fallbackLabel": "False",
+      "rules": [
+        {
+          "operator": ">",
+          "rawValue": "0.5",
+          "color": "#68e24a",
+          "label": "True"
+        }
+      ],
+      "foxglovePanelTitle": "R2 Cliff Front Right"
+    },
+    "Indicator!r2_36jz4bw": {
+      "path": "/robot2/dynamic_joint_states.interface_values[2].values[65]",
+      "style": "bulb",
+      "fontSize": 36,
+      "fallbackColor": "#a0a0a0",
+      "fallbackLabel": "False",
+      "rules": [
+        {
+          "operator": ">",
+          "rawValue": "0.5",
+          "color": "#68e24a",
+          "label": "True"
+        }
+      ],
+      "foxglovePanelTitle": "R2 Cliff Right"
+    },
+    "Teleop!r2_2wqsp00": {
+      "topic": "/robot2/cmd_vel_fg",
+      "publishRate": 5,
+      "upButton": {
+        "field": "linear-x",
+        "value": 0.2
+      },
+      "downButton": {
+        "field": "linear-x",
+        "value": -0.2
+      },
+      "leftButton": {
+        "field": "angular-z",
+        "value": 0.8
+      },
+      "rightButton": {
+        "field": "angular-z",
+        "value": -0.8
+      },
+      "foxglovePanelTitle": "R2 Control",
+      "autoSendStopOnRelease": false,
+      "stopButton": {
+        "field": "linear-x",
+        "value": 0
+      }
+    },
+    "Gauge!r2_4ah3lq6": {
+      "path": "/robot2/dynamic_joint_states.interface_values[2].values[28]",
+      "style": "dial",
+      "minValue": 0,
+      "maxValue": 18200,
+      "colorMap": "red-yellow-green",
+      "colorMode": "colormap",
+      "gradient": [
+        "#0000ff",
+        "#ff00ff"
+      ],
+      "reverse": false,
+      "reverseDirection": false,
+      "foxglovePanelTitle": "R2 Voltage",
+      "tickInterval": 0.1,
+      "showTicks": false
+    },
+    "RawMessages!r2_4fuxwnf": {
+      "topicPath": "/robot2/dynamic_joint_states.interface_values[2].values[46]",
+      "fontSize": 24,
+      "defaultExpanded": false
+    },
+    "RawMessages!r2_20moij8": {
+      "topicPath": "/robot2/dynamic_joint_states.interface_values[2].values[44]",
+      "fontSize": 24,
+      "defaultExpanded": false
+    },
+    "RawMessages!r2_1uz4jrb": {
+      "topicPath": "/robot2/dynamic_joint_states.interface_values[2].values[28]",
+      "fontSize": 24,
+      "defaultExpanded": false
+    },
+    "RawMessages!r2_2dwl0b2": {
+      "topicPath": "/robot2/dynamic_joint_states.interface_values[2].values[50]",
+      "defaultExpanded": false
+    },
+    "RawMessages!r2_4fphmc9": {
+      "topicPath": "/robot2/dynamic_joint_states.interface_values[2].values[53]",
+      "defaultExpanded": false
+    },
+    "RawMessages!r2_4kiw7qm": {
+      "topicPath": "/robot2/dynamic_joint_states.interface_values[2].values[37]",
+      "defaultExpanded": false,
+      "fontSize": 12
+    },
+    "Stack!2ij6r2b": {
+      "foxglovePanelTitle": "R1 Wheels",
+      "panels": [
+        {
+          "panelId": "Indicator!1od0r7d",
+          "size": 0.08208395802098939
+        },
+        {
+          "panelId": "RawMessages!2figvn3",
+          "size": 0.0550974512743628
+        },
+        {
+          "panelId": "Indicator!3lb9b5z",
+          "size": 0.03810516001841601
+        },
+        {
+          "panelId": "RawMessages!21q00bn",
+          "size": 0.07008995502248871
+        }
+      ]
+    },
+    "Indicator!iy1kdm": {
+      "path": "",
+      "style": "bulb",
+      "fontSize": 36,
+      "fallbackColor": "#a0a0a0",
+      "fallbackLabel": "False",
+      "rules": [
+        {
+          "operator": "=",
+          "rawValue": "true",
+          "color": "#68e24a",
+          "label": "True"
+        }
+      ]
+    },
+    "Stack!r2_2ij6r2b": {
+      "foxglovePanelTitle": "R2 Wheels",
+      "panels": [
+        {
+          "panelId": "Indicator!r2_1od0r7d",
+          "size": 0.08208395802098939
+        },
+        {
+          "panelId": "RawMessages!r2_2figvn3",
+          "size": 0.0550974512743628
+        },
+        {
+          "panelId": "Indicator!r2_3lb9b5z",
+          "size": 0.03810516001841601
+        },
+        {
+          "panelId": "RawMessages!r2_21q00bn",
+          "size": 0.07008995502248871
+        }
+      ]
+    },
+    "Indicator!1od0r7d": {
+      "path": "/robot1/dynamic_joint_states.interface_values[2].values[3]",
+      "style": "bulb",
+      "fontSize": 36,
+      "fallbackColor": "#a0a0a0",
+      "fallbackLabel": "False",
+      "rules": [
+        {
+          "operator": ">",
+          "rawValue": "0.5",
+          "color": "#68e24a",
+          "label": "True"
+        }
+      ],
+      "foxglovePanelTitle": "R1 Wheeldrop Left"
+    },
+    "RawMessages!2figvn3": {
+      "topicPath": "/robot1/dynamic_joint_states.interface_values[2].values[13]",
+      "fontSize": 24,
+      "defaultExpanded": false
+    },
+    "Indicator!3lb9b5z": {
+      "path": "/robot1/dynamic_joint_states.interface_values[2].values[2]",
+      "style": "bulb",
+      "fontSize": 36,
+      "fallbackColor": "#a0a0a0",
+      "fallbackLabel": "False",
+      "rules": [
+        {
+          "operator": ">",
+          "rawValue": "0.5",
+          "color": "#68e24a",
+          "label": "True"
+        }
+      ],
+      "foxglovePanelTitle": "R1 Wheeldrop Right"
+    },
+    "RawMessages!21q00bn": {
+      "topicPath": "/robot1/dynamic_joint_states.interface_values[2].values[23]",
+      "fontSize": 24,
+      "defaultExpanded": false
+    },
+    "Indicator!r2_1od0r7d": {
+      "path": "/robot2/dynamic_joint_states.interface_values[2].values[3]",
+      "style": "bulb",
+      "fontSize": 36,
+      "fallbackColor": "#a0a0a0",
+      "fallbackLabel": "False",
+      "rules": [
+        {
+          "operator": ">",
+          "rawValue": "0.5",
+          "color": "#68e24a",
+          "label": "True"
+        }
+      ],
+      "foxglovePanelTitle": "R2 Wheeldrop Left"
+    },
+    "RawMessages!r2_2figvn3": {
+      "topicPath": "/robot2/dynamic_joint_states.interface_values[2].values[13]",
+      "fontSize": 24,
+      "defaultExpanded": false
+    },
+    "Indicator!r2_3lb9b5z": {
+      "path": "/robot2/dynamic_joint_states.interface_values[2].values[2]",
+      "style": "bulb",
+      "fontSize": 36,
+      "fallbackColor": "#a0a0a0",
+      "fallbackLabel": "False",
+      "rules": [
+        {
+          "operator": ">",
+          "rawValue": "0.5",
+          "color": "#68e24a",
+          "label": "True"
+        }
+      ],
+      "foxglovePanelTitle": "R2 Wheeldrop Right"
+    },
+    "RawMessages!r2_21q00bn": {
+      "topicPath": "/robot2/dynamic_joint_states.interface_values[2].values[23]",
+      "fontSize": 24,
+      "defaultExpanded": false
+    },
+    "TransformTree!2en93bw": {},
+    "RawMessages!r2_z5m31b": {
+      "topicPath": "/robot2/dynamic_joint_states",
+      "defaultExpanded": false
+    },
+    "Tab!3lrpnr4": {
+      "activeTabIdx": 1,
+      "tabs": [
+        {
+          "title": "Overview",
+          "layout": {
+            "first": {
+              "first": "Plot!25ua28h",
+              "second": "3D!2qn8s6r",
+              "direction": "row",
+              "splitPercentage": 23.352153735184878
+            },
+            "second": {
+              "first": "RawMessages!3cjwbxy",
+              "second": "RawMessages!r2_odom",
+              "direction": "row",
+              "splitPercentage": 50
+            },
+            "direction": "row",
+            "splitPercentage": 50
+          }
+        },
+        {
+          "title": "Robot 1",
+          "layout": {
+            "first": {
+              "first": {
+                "first": "Publish!2950hnp",
+                "second": {
+                  "first": "Publish!fnm2uw",
+                  "second": "Publish!30nt37w",
+                  "direction": "column",
+                  "splitPercentage": 36.368279913165644
+                },
+                "direction": "column",
+                "splitPercentage": 26.66916377938009
+              },
+              "second": {
+                "first": "Publish!2cm0i9j",
+                "second": "Publish!49ypw7o",
+                "direction": "column"
+              },
+              "direction": "column"
+            },
+            "second": {
+              "first": {
+                "first": "Stack!1tr273k",
+                "second": "Markdown!400vn6g",
+                "direction": "row"
+              },
+              "second": {
+                "first": {
+                  "first": {
+                    "first": "Indicator!2m2bq1r",
+                    "second": {
+                      "first": "Indicator!1ygyol4",
+                      "second": "Indicator!12oxzzd",
+                      "direction": "row"
+                    },
+                    "direction": "row",
+                    "splitPercentage": 35.757575757575786
+                  },
+                  "second": {
+                    "first": {
+                      "first": "Indicator!1gqxnuv",
+                      "second": {
+                        "first": "Indicator!10u0t8r",
+                        "second": "Indicator!1l98rl2",
+                        "direction": "row"
+                      },
+                      "direction": "row",
+                      "splitPercentage": 35.959595959595994
+                    },
+                    "second": {
+                      "first": "Indicator!4ufdj1",
+                      "second": {
+                        "first": "Indicator!23ihwmo",
+                        "second": {
+                          "first": "Indicator!1km3gw7",
+                          "second": "Indicator!36jz4bw",
+                          "direction": "row"
+                        },
+                        "direction": "row",
+                        "splitPercentage": 32.82674772036474
+                      },
+                      "direction": "row",
+                      "splitPercentage": 22.828282828282827
+                    },
+                    "direction": "column",
+                    "splitPercentage": 25.6662839923801
+                  },
+                  "direction": "column",
+                  "splitPercentage": 22.566379800722974
+                },
+                "second": "Teleop!2wqsp00",
+                "direction": "column",
+                "splitPercentage": 55.322311319889174
+              },
+              "direction": "row",
+              "splitPercentage": 42.34426527833533
+            },
+            "direction": "row",
+            "splitPercentage": 15.745258099908344
+          }
+        },
+        {
+          "title": "Robot 2",
+          "layout": {
+            "first": {
+              "first": {
+                "first": "Publish!r2_2950hnp",
+                "second": {
+                  "first": "Publish!r2_fnm2uw",
+                  "second": "Publish!r2_30nt37w",
+                  "direction": "column",
+                  "splitPercentage": 54.21811775884817
+                },
+                "direction": "column",
+                "splitPercentage": 26.66916377938009
+              },
+              "second": {
+                "first": "Publish!r2_2cm0i9j",
+                "second": "Publish!r2_49ypw7o",
+                "direction": "column"
+              },
+              "direction": "column",
+              "splitPercentage": 75.02608960088331
+            },
+            "second": {
+              "first": {
+                "first": "Stack!r2_1tr273k",
+                "second": "Markdown!400vn6g",
+                "direction": "row"
+              },
+              "second": {
+                "first": {
+                  "first": {
+                    "first": "Indicator!r2_2m2bq1r",
+                    "second": {
+                      "first": "Indicator!r2_1ygyol4",
+                      "second": "Indicator!r2_12oxzzd",
+                      "direction": "row"
+                    },
+                    "direction": "row",
+                    "splitPercentage": 35.757575757575786
+                  },
+                  "second": {
+                    "first": {
+                      "first": "Indicator!r2_1gqxnuv",
+                      "second": {
+                        "first": "Indicator!r2_10u0t8r",
+                        "second": "Indicator!r2_1l98rl2",
+                        "direction": "row"
+                      },
+                      "direction": "row",
+                      "splitPercentage": 35.959595959595994
+                    },
+                    "second": {
+                      "first": "Indicator!r2_4ufdj1",
+                      "second": {
+                        "first": "Indicator!r2_23ihwmo",
+                        "second": {
+                          "first": "Indicator!r2_1km3gw7",
+                          "second": "Indicator!r2_36jz4bw",
+                          "direction": "row"
+                        },
+                        "direction": "row",
+                        "splitPercentage": 32.82674772036474
+                      },
+                      "direction": "row",
+                      "splitPercentage": 22.828282828282827
+                    },
+                    "direction": "column",
+                    "splitPercentage": 25.6662839923801
+                  },
+                  "direction": "column",
+                  "splitPercentage": 22.566379800722974
+                },
+                "second": "Teleop!r2_2wqsp00",
+                "direction": "column",
+                "splitPercentage": 55.322311319889174
+              },
+              "direction": "row",
+              "splitPercentage": 69.24737555427242
+            },
+            "direction": "row",
+            "splitPercentage": 33.571528352102256
+          }
+        },
+        {
+          "title": "Storage",
+          "layout": {
+            "first": {
+              "first": "Stack!2ij6r2b",
+              "second": "Indicator!iy1kdm",
+              "direction": "row"
+            },
+            "second": {
+              "first": "Stack!r2_2ij6r2b",
+              "second": "Indicator!iy1kdm",
+              "direction": "row"
+            },
+            "direction": "row",
+            "splitPercentage": 50
+          }
+        },
+        {
+          "title": "",
+          "layout": "TransformTree!2en93bw"
+        }
+      ]
+    }
+  },
+  "layout": {
+    "direction": "row",
+    "first": "RawMessages!r2_z5m31b",
+    "second": "Tab!3lrpnr4",
+    "splitPercentage": 16.4720344191764
+  },
+  "globalVariables": {
+    "": ""
+  },
+  "playbackConfig": {
+    "speed": 1
+  },
+  "userNodes": {
+    "43c09049-098d-4d20-bb7a-f97be4d05cd2": {
+      "sourceCode": "// ==UserScript==\n// @name         FoxyGlove Simple Value Display\n// @namespace    http://tampermonkey.net/\n// @version      1.0\n// @description  Display /dynamic_joint_states.interface_values[2].values[13] in FoxyGlove\n// @author       YourName\n// @match        *://*/*\n// @grant        none\n// ==/UserScript==\n\n(function() {\n    'use strict';\n\n    // Make sure FoxyGlove is loaded\n    function waitForFoxyGlove(callback) {\n        if (window.FoxyGlove) {\n            callback();\n        } else {\n            setTimeout(() => waitForFoxyGlove(callback), 100);\n        }\n    }\n\n    waitForFoxyGlove(() => {\n        // Create a container for the value\n        const container = document.createElement('div');\n        container.style.position = 'fixed';\n        container.style.bottom = '20px';\n        container.style.right = '20px';\n        container.style.padding = '10px';\n        container.style.backgroundColor = 'rgba(0,0,0,0.7)';\n        container.style.color = 'white';\n        container.style.fontSize = '18px';\n        container.style.borderRadius = '5px';\n        container.innerText = 'Value: --';\n        document.body.appendChild(container);\n\n        // Subscribe to the topic\n        const ros = window.FoxyGlove.ros; // assume ROS connection is exposed\n\n        const listener = new window.FoxyGlove.Topic({\n            ros: ros,\n            name: '/robot1/dynamic_joint_states',\n            messageType: 'your_msgs/DynamicJointStates', // replace with actual type\n        });\n\n        listener.subscribe((msg) => {\n            try {\n                // Safely extract the value\n                const value = msg.interface_values?.[2]?.values?.[13];\n                container.innerText = 'Value: ' + (value !== undefined ? value.toFixed(4) : '--');\n            } catch (err) {\n                container.innerText = 'Value: --';\n                console.error('Error reading value:', err);\n            }\n        });\n    });\n})();",
+      "name": "43c09049"
+    },
+    "r2_43c09049-098d-4d20-bb7a-f97be4d05cd2": {
+      "sourceCode": "// ==UserScript==\n// @name         FoxyGlove Simple Value Display R2\n// @namespace    http://tampermonkey.net/\n// @version      1.0\n// @description  Display /robot2/dynamic_joint_states.interface_values[2].values[13] in FoxyGlove\n// @author       YourName\n// @match        *://*/*\n// @grant        none\n// ==/UserScript==\n\n(function() {\n    'use strict';\n\n    // Make sure FoxyGlove is loaded\n    function waitForFoxyGlove(callback) {\n        if (window.FoxyGlove) {\n            callback();\n        } else {\n            setTimeout(() => waitForFoxyGlove(callback), 100);\n        }\n    }\n\n    waitForFoxyGlove(() => {\n        // Create a container for the value\n        const container = document.createElement('div');\n        container.style.position = 'fixed';\n        container.style.bottom = '20px';\n        container.style.right = '120px';\n        container.style.padding = '10px';\n        container.style.backgroundColor = 'rgba(0,0,128,0.7)';\n        container.style.color = 'white';\n        container.style.fontSize = '18px';\n        container.style.borderRadius = '5px';\n        container.innerText = 'R2 Value: --';\n        document.body.appendChild(container);\n\n        // Subscribe to the topic\n        const ros = window.FoxyGlove.ros; // assume ROS connection is exposed\n\n        const listener = new window.FoxyGlove.Topic({\n            ros: ros,\n            name: '/robot2/dynamic_joint_states',\n            messageType: 'your_msgs/DynamicJointStates', // replace with actual type\n        });\n\n        listener.subscribe((msg) => {\n            try {\n                // Safely extract the value\n                const value = msg.interface_values?.[2]?.values?.[13];\n                container.innerText = 'R2 Value: ' + (value !== undefined ? value.toFixed(4) : '--');\n            } catch (err) {\n                container.innerText = 'R2 Value: --';\n                console.error('Error reading value:', err);\n            }\n        });\n    });\n})();",
+      "name": "r2_43c09049"
+    }
+  }
+}

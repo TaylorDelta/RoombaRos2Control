@@ -38,74 +38,81 @@
 
 /**/diff_drive_controller:
   ros__parameters:
-    left_wheel_names: ["left_wheel_joint"]
-    right_wheel_names: ["right_wheel_joint"]
+    left_wheel_names:
+      - robot2/left_wheel_joint
+    right_wheel_names:
+      - robot2/right_wheel_joint
+
     wheel_separation: 0.235
     wheel_radius: 0.036
+
     command_timeout: 0.5
     velocity_rolling_window_size: 5
+
     position_feedback: true
     open_loop: false
-    left_wheel_radius_multiplier: 1.0
-    right_wheel_radius_multiplier: 1.0
-    enable_odom_tf: true #done by ekf node
-    tf_frame_prefix_enable: true
+
+    enable_odom_tf: true
+    tf_frame_prefix_enable: false
+
+    odom_frame_id: robot2/odom
+    base_frame_id: robot2/base_link
 
 /**/gpio_command_controller:
   ros__parameters:
     type: gpio_controllers/GpioCommandController
 
     gpios:
-      - main_brush
-      - side_brush
-      - vacuum
-      - mode
-      - led_bits
-      - led_color
-      - led_intensity
+      - robot2/main_brush
+      - robot2/side_brush
+      - robot2/vacuum
+      - robot2/mode
+      - robot2/led_bits
+      - robot2/led_color
+      - robot2/led_intensity
 
     command_interfaces:
-      main_brush:
+      robot2/main_brush:
         - interfaces:
           - duty_cycle
-      side_brush:
+      robot2/side_brush:
         - interfaces:
           - duty_cycle
-      vacuum:
+      robot2/vacuum:
         - interfaces:
           - duty_cycle
-      mode:
+      robot2/mode:
         - interfaces:
           - value
-      led_bits:
+      robot2/led_bits:
         - interfaces:
           - value
-      led_color:
+      robot2/led_color:
         - interfaces:
           - value
-      led_intensity:
+      robot2/led_intensity:
         - interfaces:
           - value
 
     state_interfaces:
-      main_brush:
+      robot2/main_brush:
         - interfaces:
           - duty_cycle
-      side_brush:
+      robot2/side_brush:
         - interfaces:
           - duty_cycle
-      vacuum:
+      robot2/vacuum:
         - interfaces:
           - duty_cycle
-      mode:
+      robot2/mode:
         - interfaces:
           - value
-      led_bits:
+      robot2/led_bits:
         - interfaces:
           - value
-      led_color:
+      robot2/led_color:
         - interfaces:
           - value
-      led_intensity:
+      robot2/led_intensity:
         - interfaces:
           - value

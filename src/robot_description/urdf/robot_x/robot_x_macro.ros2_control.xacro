@@ -139,6 +139,22 @@
       </gpio>
 
   
+      <!-- ADD THESE THREE NEW GPIOs -->
+      <gpio name="${prefix}led_bits">
+        <command_interface name="value"/>
+        <state_interface name="value"/>
+      </gpio>
+
+      <gpio name="${prefix}led_color">
+        <command_interface name="value"/>
+        <state_interface name="value"/>
+      </gpio>
+
+      <gpio name="${prefix}led_intensity">
+        <command_interface name="value"/>
+        <state_interface name="value"/>
+      </gpio>
+
     </ros2_control>
 
     <xacro:if value="$(arg sim_gazebo_classic)">

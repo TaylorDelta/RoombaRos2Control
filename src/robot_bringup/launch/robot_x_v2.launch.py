@@ -254,6 +254,9 @@ def generate_launch_description():
         executable="twist_to_stamped",
         output="screen",
         namespace=namespace,
+        parameters=[
+            {"namespace": namespace}
+        ],
 
     )
 
@@ -276,12 +279,12 @@ def generate_launch_description():
     # Controllers that should become ACTIVE
 
     active_controllers = [
-        robot_controller,
+        #robot_controller,
         "gpio_command_controller",
 
         # Add new controllers here:
         #
-        # "diff_drive_controller",
+        "diff_drive_controller",
         # "imu_broadcaster",
         #
     ]

@@ -136,7 +136,7 @@ namespace robot_hardware_interface
     RCLCPP_INFO(logger_, "Configuring...");
     // ============================
 
-    static constexpr const char *SERIAL_PORT = "/dev/roomba"; // /dev/roomba on my raspi, on linux it might be /dev/ttyUSB0 or similar, on Windows COM3 or similar
+    static constexpr const char *SERIAL_PORT = "/dev/ttyUSB0"; // on linux it might be /dev/ttyUSB0 or similar, on Windows COM3 or similar
     static constexpr int BAUD_RATE = 115200;
 
     // Initalize serial
@@ -176,6 +176,18 @@ namespace robot_hardware_interface
     // return list of state interfaces
     RCLCPP_INFO(logger_, "Exporting state interfaces...");
     // ============================
+    
+    // Print joint names
+    for (size_t i = 0; i < info_.joints.size(); ++i)
+    {
+      RCLCPP_INFO(logger_, "Joint %zu: %s", i, info_.joints[i].name.c_str());
+    }
+
+    // Print GPIO names
+    for (size_t i = 0; i < info_.gpios.size(); ++i)
+    {
+      RCLCPP_INFO(logger_, "GPIO %zu: %s", i, info_.gpios[i].name.c_str());
+    }
 
     std::vector<hardware_interface::StateInterface> state_interfaces;
     for (size_t i = 0; i < info_.joints.size(); ++i)
@@ -217,6 +229,20 @@ namespace robot_hardware_interface
     // return list of command interfaces
     RCLCPP_INFO(logger_, "Exporting command interfaces...");
     // ============================
+
+
+    // Print joint names
+    for (size_t i = 0; i < info_.joints.size(); ++i)
+    {
+      RCLCPP_INFO(logger_, "Joint %zu: %s", i, info_.joints[i].name.c_str());
+    }
+
+    // Print GPIO names
+    for (size_t i = 0; i < info_.gpios.size(); ++i)
+    {
+      RCLCPP_INFO(logger_, "GPIO %zu: %s", i, info_.gpios[i].name.c_str());
+    }
+
     std::vector<hardware_interface::CommandInterface> command_interfaces;
     for (size_t i = 0; i < info_.joints.size(); ++i)
     {
@@ -252,7 +278,7 @@ namespace robot_hardware_interface
     uint8_t stream_cmd[] = {149, 2, 43, 44};
 
     const int STABILITY_THRESHOLD = 10; // Number of consecutive stable readings required to consider values stable
-    const int TIMEOUT_LIMIT = 100;      // Maximum number of iterations before timing out (to avoid infinite loop)
+    const int TIMEOUT_LIMIT = 50;      // Maximum number of iterations before timing out (to avoid infinite loop)
 
     int stability_counter = 0;
     int timeout_counter = 0;
