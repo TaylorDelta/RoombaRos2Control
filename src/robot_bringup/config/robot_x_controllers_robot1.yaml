@@ -52,11 +52,13 @@
     position_feedback: true
     open_loop: false
 
-    enable_odom_tf: true
+    enable_odom_tf: false
     tf_frame_prefix_enable: false
 
     odom_frame_id: robot1/odom
     base_frame_id: robot1/base_link
+    pose_covariance_diagonal: [0.001, 0.001, 0.001, 0.0, 0.0, 0.05]
+    twist_covariance_diagonal: [0.001, 0.001, 0.001, 0.0, 0.0, 0.05]
 
 /**/gpio_command_controller:
   ros__parameters:

@@ -248,6 +248,17 @@ def generate_launch_description():
     # camera_node = Node(...)
     #
 
+    # MPU6500 IMU driver with Madgwick AHRS filter for orientation estimation
+    mpu6500_node = Node(
+        package="mpu6500_driver",
+        executable="mpu6500_filtered_node",
+        namespace=namespace,
+        output="screen",
+        parameters=[
+            {"frame_id": "imu_link"}
+        ],
+    )
+
 
     twist_to_stamped_node = Node(
         package="twist_bridge",
@@ -379,6 +390,7 @@ def generate_launch_description():
         twist_to_stamped_node,
 
         # Custom nodes
+        mpu6500_node,  # IMU driver with orientation estimation
         # lidar_node,
         # camera_node,
 

@@ -9,6 +9,7 @@ BAUD_RATE = 115200
 
 ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1)
 
-ser.write(b'\x80')  # Opcode 128 (Start)
+# Opcode 128 (Start)
 
+ser.write(b'\x80')  
 ser.write(b'\x07')

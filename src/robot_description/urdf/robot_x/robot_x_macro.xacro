@@ -10,14 +10,14 @@
     <link name="${prefix}base_link">
       <!-- <xacro:default_inertial/> -->
       <visual>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <origin xyz="0.0065 0 0" rpy="0 0 0"/>
         <geometry>
           <cylinder length="0.05" radius="0.1675"/> <!-- robot radius 335mm -->
         </geometry>
         <material name="black"/>
       </visual>
       <collision>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <origin xyz="0.0065 0 0" rpy="0 0 0"/>
         <geometry>
           <cylinder length="0.05" radius="0.1675"/>
         </geometry>
@@ -61,9 +61,20 @@
     </link>
 
 
+
+    <link name="${prefix}imu_link"/>
+
+    <joint name="${prefix}imu_joint" type="fixed">
+        <parent link="${prefix}base_link"/>
+        <child link="${prefix}imu_link"/>
+        <origin xyz="0.04 0 0.03"
+                rpy="0 0 0"/>
+    </joint>
+
+
     <!-- Left wheel joint -->
     <joint name="${prefix}left_wheel_joint" type="continuous">
-      <origin xyz="-0.0065 0.1175 0" rpy="0 0 0"/> <!-- x behind center, y left -->
+      <origin xyz="0 0.1175 0" rpy="0 0 0"/> <!-- x behind center, y left -->
       <axis xyz="0 1 0"/> <!-- rotation around Y-axis -->
       <parent link="${prefix}base_link"/>
       <child link="${prefix}left_wheel_link"/>
@@ -72,7 +83,7 @@
 
     <!-- Right wheel joint -->
     <joint name="${prefix}right_wheel_joint" type="continuous">
-      <origin xyz="-0.0065 -0.1175 0" rpy="0 0 0"/> <!-- x behind center, y right -->
+      <origin xyz="-0 -0.1175 0" rpy="0 0 0"/> <!-- x behind center, y right -->
       <axis xyz="0 1 0"/>
       <parent link="${prefix}base_link"/>
       <child link="${prefix}right_wheel_link"/>
